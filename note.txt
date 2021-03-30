@@ -1,0 +1,26 @@
+19/3: 
+Test to run the simulation using server set up in university.
+- Topology graphml design to fit ot exp setup in lab. -DOne
+- Flow adjustment to follow the trace. _ Know how to DOne
+- Services configuration. Not yet.
+-> Outcome: finish and run 1 episode represent 1 simulation day.
+Just use the env test.
+
+20/3: 
+Create the csv
+- Add 4 services in abc.yaml file -> not yet
+- Change and add flow -> come up with plan to get a full flow and place it in the network. -> not yet
+
+21/3: 
+Draw all the environment functions.
+Finish/ understand the apply function in simulation wrapper,
+come up with plan to implement OMNET++ here!!!
+
+22/3: 
+Still need to plan the whole classes for simulator and everything. !!!
+
+23/3: 
+Build the Network simulator and make it run !!!
+
+
+
