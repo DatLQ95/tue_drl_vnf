@@ -42,13 +42,15 @@ class DDPG(RLSPAgent):
         observation_input = Input(shape=(1,) + self.agent_helper.env.observation_space.shape, name='observation_input')
         flattened_observation = Flatten()(observation_input)
         prev_layer = flattened_observation
+        
         # create hidden layers according to config
         for num_hidden in self.agent_helper.config['actor_hidden_layer_nodes']:
             hidden_layer = Dense(num_hidden,
                                  activation=self.agent_helper.config['actor_hidden_layer_activation'])(prev_layer)
             prev_layer = hidden_layer
         # split output layer into separate parts for each node and SF and apply softmax individually
-        out_parts = [Dense(num_nodes, activation='softmax')(prev_layer) for _ in range(num_nodes * num_sfs)]
+        out_parts = [Dense(num_nodes, activation='softmax')(prev_layer) for _ in range(num_nodes * num_sfs * num_sfcs)]
+        logger.info(f"out_parts: {out_parts}")
         out = Concatenate()(out_parts)
         # normal output layer
         # out = Dense(nb_actions, activation='tanh')(prev_layer)

@@ -25,7 +25,8 @@ DATETIME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
 logger = None
-
+logging.basicConfig()
+logging.root.setLevel(logging.DEBUG)
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.argument('agent_config', type=click.Path(exists=True))
@@ -141,9 +142,14 @@ def select_best_agent(result_dir, num_agents=None):
 def execute(agent_helper):
     """Execution function for testing or training"""
     agent_helper.env = create_environment(agent_helper)
+    logger.info(f"observation_space: {agent_helper.env.observation_space.shape}")
+    logger.info(f"action_space: {agent_helper.env.action_space.shape[0]}")
+    
+    logger.info("DONE CREATE ENVIRONMENT")
     agent_helper.agent = create_agent(agent_helper)
-
+    logger.info("DONE CREATE AGENT")
     if agent_helper.train:
+        logger.info(f"agent_helper.weights: {agent_helper.weights}")
         if agent_helper.weights:
             load_weights(agent_helper.agent, f"{agent_helper.result_base_path}/{agent_helper.weights}/weights")
         train_agent(agent_helper)
@@ -390,6 +396,7 @@ def training(agent, env, callbacks, episodes, result):
     episode_steps = agent.agent_helper.episode_steps
     result.agent_config['episodes'] = episodes
     result.agent_config['episode_steps'] = episode_steps
+    logger.info("START TRAINING")
     agent.fit(env, episodes=episodes, verbose=1, episode_steps=episode_steps, callbacks=callbacks,
               log_interval=episodes * episode_steps)
     logger.info("FINISHED TRAINING")
@@ -397,9 +404,9 @@ def training(agent, env, callbacks, episodes, result):
 
 if __name__ == '__main__':
     agent_config = 'res/config/agent/sample_agent.yaml'
-    network = 'res/networks/sample_network.graphml'
-    service = 'res/service_functions/abc.yaml'
-    sim_config = 'res/config/simulator/sample_config.yaml'
+    network = 'res/networks/tue_network.graphml'
+    service = 'res/service_functions/tue_abc.yaml'
+    sim_config = 'res/config/simulator/test.yaml'
     # sim_config = 'res/config/simulator/det-mmp-arrival7-3_det-size0_dur100_no_traffic_prediction.yaml'
 
     # training for 1 episode

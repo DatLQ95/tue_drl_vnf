@@ -154,7 +154,9 @@ class SimulatorWrapper:
                 self.add_placement_recursive(ing, 0, sfc, scheduling_dict, placement_dict)
         # invoke simulator
         logger.debug("call apply on Simulator")
+        logger.debug(f"scheduling_dicts: {json.dumps(scheduling_dict, indent=2)}")
         simulator_action = SimulatorAction(placement_dict, scheduling_dict)
+        
         state = self.simulator.apply(simulator_action)
 
         return self._parse_state(state), state
@@ -185,12 +187,24 @@ class SimulatorWrapper:
                 node_load[self.node_map[node['id']]] = node['used_resources'] / node['resource']
 
         # normalized ingress traffic
-        ingress_traffic = np.array([0.0 for v in state.network['nodes']])
-        for node, sfc_dict in state.traffic.items():
-            for sfc, sf_dict in sfc_dict.items():
-                ingress_sf = state.sfcs[sfc][0]
-                ingress_traffic[self.node_map[node]] = sf_dict[ingress_sf] / self.simulator.duration
+        ingress_traffic = list()
+        for node in state.network['nodes']:
+            for sfc in self.sfc_dict.keys():
+                if sfc in state.traffic[node['id']]:
+                    ingress_sf = state.sfcs[sfc][0]
+                    ingress_traffic.append(state.traffic[node['id']][sfc][ingress_sf] / self.simulator.duration)
+                else :
+                    ingress_traffic.append(0)
 
+        # for node, sfc_dict in state.traffic.items():
+        #     for sfc, sf_dict in sfc_dict.items():
+        #         ingress_sf = state.sfcs[sfc][0]
+        #         logger.debug(f"ingress_sf: {ingress_sf}")
+        #         ingress_traffic.append(sf_dict[ingress_sf] / self.simulator.duration)
+        #         logger.debug(f"ingress_traffic[self.node_map[node]]: {ingress_traffic[self.node_map[node]]}")
+
+        ingress_traffic = np.array(ingress_traffic)
+        
         nn_input_state = np.array([])
         if 'ingress_traffic' in self.observations_space:
             nn_input_state = np.concatenate((nn_input_state, ingress_traffic,), axis=None)

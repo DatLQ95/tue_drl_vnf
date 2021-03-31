@@ -70,7 +70,7 @@ class EnvironmentLimits:
         gym.space
         """
 
-        node_load_size = self.MAX_NODE_COUNT
+        node_load_size = self.MAX_NODE_COUNT * self.MAX_SF_CHAIN_COUNT
         shape = (self.observation_space_len * node_load_size,)
 
         return spaces.Box(low=0, high=100, shape=shape)
