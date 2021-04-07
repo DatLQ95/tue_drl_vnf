@@ -25,14 +25,15 @@ DATETIME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
 logger = None
-logging.basicConfig()
-logging.root.setLevel(logging.DEBUG)
+# logging.basicConfig()
+# logging.root.setLevel(logging.ERROR)
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.argument('agent_config', type=click.Path(exists=True))
 @click.argument('network', type=click.Path(exists=True))
 @click.argument('service', type=click.Path(exists=True))
 @click.argument('sim_config', type=click.Path(exists=True))
+@click.argument('service_requirement', type=click.Path(exists=True))
 @click.argument('episodes', type=int)
 @click.option('--seed', default=random.randint(1000, 9999),
               help="Specify the random seed for the environment and the learning agent.")
@@ -44,13 +45,13 @@ logging.root.setLevel(logging.DEBUG)
 @click.option('-ss', '--sim-seed', type=int, help="Set the simulator seed", default=None)
 @click.option('-gs', '--gen-scenario', type=click.Path(exists=True),
               help="Diff. sim config file for additional scenario test", default=None)
-def cli(agent_config, network, service, sim_config, episodes, seed, test, weights, append_test, verbose, best,
+def cli(agent_config, network, service, sim_config, service_requirement, episodes, seed, test, weights, append_test, verbose, best,
         sim_seed, gen_scenario):
     """rlsp cli for learning and testing"""
     global logger
 
     # Setup agent helper class
-    agent_helper = setup(agent_config, network, service, sim_config, seed, episodes, weights, verbose, DATETIME, test, append_test, best, sim_seed, gen_scenario)
+    agent_helper = setup(agent_config, network, service, sim_config, service_requirement, seed, episodes, weights, verbose, DATETIME, test, append_test, best, sim_seed, gen_scenario)
     log_info(agent_helper)
     # Execute training or testing
     execute(agent_helper)
@@ -58,7 +59,7 @@ def cli(agent_config, network, service, sim_config, episodes, seed, test, weight
     wrap_up(agent_helper)
 
 
-def setup(agent_config, network, service, sim_config, seed, episodes, weights,
+def setup(agent_config, network, service, sim_config, service_requirement, seed, episodes, weights,
           verbose, DATETIME, test, append_test, best, sim_seed, gen_scenario):
     """Overall setup for the rl variables"""
     if best:
@@ -66,7 +67,7 @@ def setup(agent_config, network, service, sim_config, seed, episodes, weights,
         result_dir = f"results/{get_base_path(agent_config, network, service, sim_config)}"
         test = select_best_agent(result_dir)
     # Create the AgentHelper data class
-    agent_helper = AgentHelper(agent_config, network, service, sim_config, seed, episodes, weights, verbose, DATETIME,
+    agent_helper = AgentHelper(agent_config, network, service, sim_config, service_requirement, seed, episodes, weights, verbose, DATETIME,
                                test, append_test, sim_seed, gen_scenario)
 
     # Setup the files and paths required for the agent
@@ -371,6 +372,7 @@ def create_environment(agent_helper):
                    simulator=create_simulator(agent_helper),
                    network_file=agent_helper.network_path,
                    service_file=agent_helper.service_path,
+                   service_requirement_file=agent_helper.service_requirement_path,
                    seed=agent_helper.seed,
                    sim_seed=agent_helper.sim_seed)
 
@@ -407,6 +409,7 @@ if __name__ == '__main__':
     network = 'res/networks/tue_network.graphml'
     service = 'res/service_functions/tue_abc.yaml'
     sim_config = 'res/config/simulator/test.yaml'
+    service_requirement = 'res/service_functions/sfc_requirement.yaml'
     # sim_config = 'res/config/simulator/det-mmp-arrival7-3_det-size0_dur100_no_traffic_prediction.yaml'
 
     # training for 1 episode
@@ -416,7 +419,7 @@ if __name__ == '__main__':
     # cli([agent_config, network, service, sim_config, '1', '-t', '2021-01-07_13-00-43_seed1234'])
 
     # training & testing for 1 episodes
-    cli([agent_config, network, service, sim_config, '70', '--append-test'])
+    cli([agent_config, network, service, sim_config, service_requirement, '100', '--append-test'])
 
     # training & testing for 4 episodes, with fixed simulator seed.
     # cli([agent_config, network, service, sim_config, '4', '--append-test', '-ss', '5555'])

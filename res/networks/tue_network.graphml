@@ -76,60 +76,60 @@
       <data key="d31">0</data>
       <data key="d33">North</data>
       <data key="d39">Ingress</data>
-      <data key="d40">100</data>
+      <data key="d40">10</data>
     </node>
     <node id="1">
       <data key="d28">1</data>
       <data key="d31">1</data>
       <data key="d33">East</data>
       <data key="d39">Ingress</data>
-      <data key="d40">100</data>
+      <data key="d40">10</data>
     </node>
     <node id="2">
       <data key="d28">1</data>
       <data key="d31">2</data>
       <data key="d33">South</data>
       <data key="d39">Normal</data>
-      <data key="d40">100</data>
+      <data key="d40">10</data>
     </node>
     <node id="3">
       <data key="d28">1</data>
       <data key="d31">3</data>
       <data key="d33">West</data>
       <data key="d39">Normal</data>
-      <data key="d40">100</data>
+      <data key="d40">10</data>
     </node>
     <edge source="3" target="0">
       <data key="d34">OC-192</data>
       <data key="d35">OC-192c</data>
       <data key="d36">c</data>
       <data key="d37">0</data>
-      <data key="d38">10</data>
-      <data key="d41">100</data>
+      <data key="d38">1</data>
+      <data key="d41">10</data>
     </edge>
     <edge source="0" target="1">
       <data key="d34">OC-192</data>
       <data key="d35">OC-192c</data>
       <data key="d36">c</data>
       <data key="d37">0</data>
-      <data key="d38">10</data>
-      <data key="d41">100</data>
+      <data key="d38">1</data>
+      <data key="d41">10</data>
     </edge>
     <edge source="1" target="2">
       <data key="d34">OC-192</data>
       <data key="d35">OC-192c</data>
       <data key="d36">c</data>
       <data key="d37">0</data>
-      <data key="d38">10</data>
-      <data key="d41">100</data>
+      <data key="d38">1</data>
+      <data key="d41">10</data>
     </edge>
     <edge source="2" target="3">
       <data key="d34">OC-192</data>
       <data key="d35">OC-192c</data>
       <data key="d36">c</data>
       <data key="d37">0</data>
-      <data key="d38">10</data>
-      <data key="d41">100</data>
+      <data key="d38">1</data>
+      <data key="d41">10</data>
     </edge>
     
   </graph>

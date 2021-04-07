@@ -19,7 +19,7 @@ from rlsp.envs.environment_limits import EnvironmentLimits
 from rlsp.envs.simulator_wrapper import SimulatorWrapper
 from rlsp.utils.constants import SUPPORTED_OBJECTIVES
 from spinterface import SimulatorInterface, SimulatorState
-from coordsim.reader.reader import read_network, get_sfc, get_sf, network_diameter
+from coordsim.reader.reader import read_network, get_sfc, get_sf, network_diameter, get_sfc_requirement
 import json
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class GymEnv(gym.Env):
 
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, agent_config, simulator, network_file, service_file, seed=None, sim_seed=None):
+    def __init__(self, agent_config, simulator, network_file, service_file, service_requirement_file, seed=None, sim_seed=None):
 
         self.network_file = network_file
         self.agent_config = agent_config
@@ -54,15 +54,18 @@ class GymEnv(gym.Env):
 
         self.network, _, _ = read_network(self.network_file)
         self.network_diameter = network_diameter(self.network)
+        
         self.sfc_list = get_sfc(service_file)
         self.sf_list = get_sf(service_file)
-        logger.info('sfc list: ' + str(self.sfc_list))
+        self.service_requirement = get_sfc_requirement(service_requirement_file)
+
+        # logger.info('service_requirement: ' + str(self.service_requirement))
         self.env_limits = EnvironmentLimits(len(self.network.nodes), self.sfc_list,
                                             len(agent_config['observation_space']))
         self.min_delay, self.max_delay = self.min_max_delay()
         self.action_space = self.env_limits.action_space
         self.observation_space = self.env_limits.observation_space
-        logger.info('Observation space: ' + str(self.agent_config['observation_space']))
+        # logger.info('Observation space: ' + str(self.agent_config['observation_space']))
 
         # order of permutation for shuffling state
         self.permutation = None
@@ -87,11 +90,18 @@ class GymEnv(gym.Env):
 
     def min_max_delay(self):
         """Return the min and max e2e-delay for the current network topology and SFC. Independent of capacities."""
-        vnf_delays = sum([sf['processing_delay_mean'] for sf in self.sf_list.values()])
-        # min delay = sum of VNF delays (corresponds to all VNFs at ingress)
-        min_delay = vnf_delays
-        # max delay = VNF delays + num_vnfs * network diameter (corresponds to max distance between all VNFs)
-        max_delay = vnf_delays + len(self.sf_list) * self.network_diameter
+        
+        # vnf_delays = sum([sf['processing_delay_mean'] for sf in self.sf_list['sfc_1']])
+        # logger.info(f"self.sf_list: {self.sf_list}")
+        # # min delay = sum of VNF delays (corresponds to all VNFs at ingress)
+        # min_delay = vnf_delays
+        # # max delay = VNF delays + num_vnfs * network diameter (corresponds to max distance between all VNFs)
+        # max_delay = vnf_delays + len(self.sf_list) * self.network_diameter
+        
+        #FIXME: change this!!!
+
+        min_delay = self.sf_list['a1']['processing_delay_mean'] + self.sf_list['b1']['processing_delay_mean']
+        max_delay = min_delay + 2 * self.network_diameter
         logger.info(f"min_delay: {min_delay}, max_delay: {max_delay}, diameter: {self.network_diameter}")
         return min_delay, max_delay
 
@@ -109,7 +119,7 @@ class GymEnv(gym.Env):
             simulator_seed = self.np_random.randint(0, np.iinfo(np.int32).max, dtype=np.int32)
         else:
             simulator_seed = self.sim_seed
-        logger.debug(f"Simulator seed is {simulator_seed}")
+        # logger.debug(f"Simulator seed is {simulator_seed}")
         self.simulator_wrapper = SimulatorWrapper(self.simulator, self.env_limits,
                                                   self.agent_config['observation_space'])
 
@@ -128,14 +138,14 @@ class GymEnv(gym.Env):
         if self.agent_config['shuffle_nodes']:
             vectorized_state, permutation = self.simulator_wrapper.permute_node_order(vectorized_state)
             self.permutation = permutation
-        logger.info(f"vectorized_state is {vectorized_state}")
+        # logger.info(f"vectorized_state is {vectorized_state}")
         
-        logger.info(f"network is {json.dumps(self.current_simulator_state.network, indent=2)}")
-        logger.info(f"placement is {self.current_simulator_state.placement}")
-        logger.info(f"sfcs is {json.dumps(self.current_simulator_state.sfcs, indent=2)}")
-        logger.info(f"service_functions is {self.current_simulator_state.service_functions}")
-        logger.info(f"traffic is {json.dumps(self.current_simulator_state.traffic, indent=2)}")
-        logger.info(f"network_stats is {json.dumps(self.current_simulator_state.network_stats, indent=2)}")
+        # logger.info(f"network is {json.dumps(self.current_simulator_state.network, indent=2)}")
+        # logger.info(f"placement is {self.current_simulator_state.placement}")
+        # logger.info(f"sfcs is {json.dumps(self.current_simulator_state.sfcs, indent=2)}")
+        # logger.info(f"service_functions is {self.current_simulator_state.service_functions}")
+        # logger.info(f"traffic is {json.dumps(self.current_simulator_state.traffic, indent=2)}")
+        # logger.info(f"network_stats is {json.dumps(self.current_simulator_state.network_stats, indent=2)}")
         return vectorized_state
 
     def seed(self, seed=None):
@@ -174,7 +184,7 @@ class GymEnv(gym.Env):
         """
         done = False
         self.run_count += 1
-        logger.debug(f"Action array (NN output + noise, normalized): {action}")
+        # logger.debug(f"Action array (NN output + noise, normalized): {action}")
 
         # reverse action order using permutation from previous state shuffle
         if self.agent_config['shuffle_nodes']:
@@ -183,6 +193,7 @@ class GymEnv(gym.Env):
 
         # apply reversed action, calculate reward
         vectorized_state, self.current_simulator_state = self.simulator_wrapper.apply(action)
+        # logger.info(f"self.current_simulator_state network : {self.current_simulator_state.network_stats}")
         reward = self.calculate_reward(self.current_simulator_state)
 
         # then shuffle new state again and save new permutation
@@ -193,7 +204,7 @@ class GymEnv(gym.Env):
             done = True
             self.run_count = 0
 
-        logger.debug(f"NN input (observation): {vectorized_state}")
+        # logger.debug(f"NN input (observation): {vectorized_state}")
 
         # logger.info(f"network is {json.dumps(self.current_simulator_state.network, indent=2)}")
         # logger.info(f"placement is {self.current_simulator_state.placement}")
@@ -219,12 +230,38 @@ class GymEnv(gym.Env):
         # calculate ratio of successful flows in the last run
         cur_succ_flow = simulator_state.network_stats['run_successful_flows']
         cur_drop_flow = simulator_state.network_stats['run_dropped_flows']
+
         succ_ratio = 0
         flow_reward = 0
         if cur_succ_flow + cur_drop_flow > 0:
             succ_ratio = cur_succ_flow / (cur_succ_flow + cur_drop_flow)
             # use this for flow reward instead of succ ratio to use full [-1, 1] range rather than just [0,1]
             flow_reward = (cur_succ_flow - cur_drop_flow) / (cur_succ_flow + cur_drop_flow)
+        return succ_ratio, flow_reward
+    
+    def get_flow_reward_sfcs(self, simulator_state):
+        """Calculate and return both success ratio and flow reward"""
+        cur_succ_flow = 0
+        cur_drop_flow = 0
+        # logger.info(f"simulator_state.sfcs.keys() : {simulator_state.sfcs.keys()}")
+        # calculate ratio of successful flows in the last run
+        for sfc in simulator_state.sfcs.keys():
+            # logger.info(f"sfc : {sfc}")
+            # logger.info(f"simulator_state.network_stats['run_successful_flows_sfcs'] : {simulator_state.network_stats['run_successful_flows_sfcs'][sfc]}")
+            # logger.info(f"self.service_requirement_file[sfc]['priority'] : {self.service_requirement[sfc]['priority']}")
+            cur_succ_flow += simulator_state.network_stats['run_successful_flows_sfcs'][sfc] * self.service_requirement[sfc]['priority']
+            cur_drop_flow += simulator_state.network_stats['run_dropped_flows_sfcs'][sfc] * self.service_requirement[sfc]['priority']
+        # logger.info(f"cur_succ_flow : {cur_succ_flow}")
+        # logger.info(f"cur_drop_flow : {cur_drop_flow}")
+
+        succ_ratio = 0
+        flow_reward = 0
+        if cur_succ_flow + cur_drop_flow > 0:
+            succ_ratio = cur_succ_flow / (cur_succ_flow + cur_drop_flow)
+            # use this for flow reward instead of succ ratio to use full [-1, 1] range rather than just [0,1]
+            flow_reward = (cur_succ_flow - cur_drop_flow) / (cur_succ_flow + cur_drop_flow)
+
+        # logger.info(f"flow_reward : {flow_reward}")
         return succ_ratio, flow_reward
 
     def get_delay_reward(self, simulator_state, succ_ratio):
@@ -242,6 +279,46 @@ class GymEnv(gym.Env):
             delay_reward = ((self.min_delay - delay) / self.network_diameter) + 1
             delay_reward = np.clip(delay_reward, -1, 1)
         return delay, delay_reward
+    
+    def get_delay_reward_sfcs(self, simulator_state, succ_ratio):
+        """Return avg e2e delay and delay reward"""
+        # get avg. e2e delay in last run and calculate delay reward
+        delay_sfcs = simulator_state.network_stats['avg_end2end_delay_sfcs']
+        # ensure the delay is at least min_delay/VNF delay. may be lower if no flow was successful
+        # logger.info(f"delay_sfcs: {delay_sfcs}")
+        # logger.info(f"self.min_delay: {self.min_delay}")
+        # for sfc, sfc_delay in delay_sfcs.items():
+        #     if sfc_delay < self.min_delay:
+        #         delay_sfcs[sfc] = self.min_delay
+        # logger.info(f"delay_sfcs: {delay_sfcs}")
+        delay_reward_sfc = list()
+        total_priority = 0
+        # require some flows to be successful for delay to have any meaning; init to -1
+        if succ_ratio == 0:
+            delay_reward = -1
+        else:
+            # subtract from min delay = vnf delay;
+            # to disregard VNF delay, which cannot be affected and may already be larger than the diameter
+            # delay_reward = ((self.min_delay - delay) / self.network_diameter) + 1
+            # delay_reward = np.clip(delay_reward, -1, 1)
+            # delay_reward = 0
+            for sfc, sfc_delay in delay_sfcs.items():
+                if sfc_delay == 0: 
+                    continue
+                else:
+                    reward_delay = (2 * (self.service_requirement[sfc]['delay_requirement'] - self.min_delay) / (sfc_delay - self.min_delay)) - 1
+                    # logger.info(f"reward_delay: {reward_delay} of sfc: {sfc}")
+                    reward_delay = min(reward_delay, 1)
+                    reward_delay *= self.service_requirement[sfc]['priority']
+                    delay_reward_sfc.append(reward_delay)
+                    total_priority += self.service_requirement[sfc]['priority']
+        #             logger.info(f"reward_delay: {reward_delay} of sfc: {sfc}")
+        # logger.info(f"total_priority: {total_priority}")
+        # logger.info(f"delay_reward_sfc: {delay_reward_sfc}")
+        
+        delay_reward = sum([delay/total_priority for delay in delay_reward_sfc])
+        # logger.info(f"reward_delay: {delay_reward}")
+        return delay_sfcs, delay_reward
 
     def get_node_reward(self, simulator_state):
         """Return reward based on the number of used nodes: Fewer = better"""
@@ -298,11 +375,17 @@ class GymEnv(gym.Env):
         :param simulator_state: Current simulator state
         :return -> float: The agent's reward
         """
-        succ_ratio, flow_reward = self.get_flow_reward(simulator_state)
-        delay, delay_reward = self.get_delay_reward(simulator_state, succ_ratio)
+        # succ_ratio, flow_reward = self.get_flow_reward(simulator_state)
+        # delay, delay_reward = self.get_delay_reward(simulator_state, succ_ratio)
         nodes_reward = self.get_node_reward_shaped(simulator_state)
         instance_reward = self.get_instance_reward(simulator_state)
+        
+        
+        succ_ratio, flow_reward = self.get_flow_reward_sfcs(simulator_state)
+        delay, delay_reward = self.get_delay_reward_sfcs(simulator_state, succ_ratio)
 
+        # logger.info(f"succ_ratio: {succ_ratio}, flow_reward: {flow_reward}")
+        # logger.info(f"delay: {delay}, delay_reward: {delay_reward}")
         # combine rewards based on chosen objective (and weights)
         if self.objective == 'prio-flow':
             nodes_reward = 0
@@ -357,6 +440,14 @@ class GymEnv(gym.Env):
             nodes_reward *= self.agent_config['node_weight']
             instance_reward *= self.agent_config['instance_weight']
 
+        elif self.objective == 'sfc_with_priority':
+            # weight all objectives as configured before summing them
+            flow_reward *= self.agent_config['flow_weight']
+            delay_reward *= self.agent_config['delay_weight']
+            nodes_reward = 0
+            instance_reward = 0
+            pass
+
         else:
             raise ValueError(f"Unexpected objective {self.objective}. Must be in {SUPPORTED_OBJECTIVES}.")
 
@@ -373,4 +464,4 @@ class GymEnv(gym.Env):
 
         return total_reward
 
-#TODO: add SLA calculation for each SFC!!!
+# #TODO: add SLA calculation for each SFC!!!

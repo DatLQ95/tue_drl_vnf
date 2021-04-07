@@ -10,7 +10,7 @@ observation_space:
 shuffle_nodes: False
 
 # Setting episode steps
-episode_steps: 200
+episode_steps: 96
 
 # Agent type: SAC or DDPG
 agent_type: "DDPG"
@@ -22,8 +22,11 @@ critic_hidden_layer_nodes: [64] # Array with nodes for each layer
 critic_hidden_layer_activation: "relu"
 
 # objective and reward
-objective: 'prio-flow'
-target_success: 'auto'
+# objective: 'prio-flow'
+# target_success: 'auto'
+objective: 'sfc_with_priority'
+flow_weight: 0.4
+delay_weight: 0.6
 
 # Memory Config
 mem_limit: 10000

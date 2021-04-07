@@ -1,3 +1,3 @@
 """Project-wide definition of constants"""
 
-SUPPORTED_OBJECTIVES = {'prio-flow', 'soft-deadline', 'soft-deadline-exp', 'weighted'}
+SUPPORTED_OBJECTIVES = {'prio-flow', 'soft-deadline', 'soft-deadline-exp', 'weighted', 'sfc_with_priority'}
