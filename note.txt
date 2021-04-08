@@ -22,5 +22,18 @@ Still need to plan the whole classes for simulator and everything. !!!
 23/3: 
 Build the Network simulator and make it run !!!
 
+rlsp cmd: 
+rlsp res/config/agent/sample_agent.yaml res/networks/tue_network.graphml res/service_functions/tue_abc.yaml res/config/simulator/test.yaml res/service_functions/sfc_requirement.yaml 200 --append-test
 
+DDPG LEarn resource: 
+https://www.alexirpan.com/2018/02/14/rl-hard.html
 
+7/4: 
+Test with 1000 time steps / episode
+node cap = 10, link cap = 10.
+
+8/4:
+Change the node cap to 100, link cap to 100.
+Add the writter schedule.
+Change the noise to increase the exploration to overcome the local minimal. 
+Test with 100 time steps / episode.

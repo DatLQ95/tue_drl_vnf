@@ -8,9 +8,11 @@ flow_dr_mean: 1.0                  # default: 1.0
 flow_dr_stdev: 0.0                 # default: 0.0
 flow_size_shape: 0.001               # default: 0.001
 deterministic_size: True
-run_duration: 1000                  # default: 100
+run_duration: 100                  # default: 100
 
 ttl_choices: [100]
 
-trace_path: res/traces/trace_7_3_received_data_1000duration.csv
-percentage_path: res/traces/trace_7_3_percentage_1000duration.csv
+write_schedule: True
+
+trace_path: res/traces/trace_7_3_received_data_100duration.csv
+percentage_path: res/traces/trace_7_3_percentage_100duration.csv
