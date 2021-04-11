@@ -305,14 +305,17 @@ class GymEnv(gym.Env):
             for sfc, sfc_delay in delay_sfcs.items():
                 if sfc_delay == 0: 
                     continue
+                elif sfc_delay == self.min_delay:
+                    reward_delay = 1
                 else:
                     reward_delay = (2 * (self.service_requirement[sfc]['delay_requirement'] - self.min_delay) / (sfc_delay - self.min_delay)) - 1
                     # logger.info(f"reward_delay: {reward_delay} of sfc: {sfc}")
                     reward_delay = min(reward_delay, 1)
-                    reward_delay *= self.service_requirement[sfc]['priority']
-                    delay_reward_sfc.append(reward_delay)
-                    total_priority += self.service_requirement[sfc]['priority']
-        #             logger.info(f"reward_delay: {reward_delay} of sfc: {sfc}")
+                # logger.info(f"reward_delay: {reward_delay} of sfc: {sfc}")
+                reward_delay *= self.service_requirement[sfc]['priority']
+                delay_reward_sfc.append(reward_delay)
+                total_priority += self.service_requirement[sfc]['priority']
+        # logger.info(f"reward_delay: {reward_delay} of sfc: {sfc}")
         # logger.info(f"total_priority: {total_priority}")
         # logger.info(f"delay_reward_sfc: {delay_reward_sfc}")
         

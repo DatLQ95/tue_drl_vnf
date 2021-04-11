@@ -37,3 +37,10 @@ Change the node cap to 100, link cap to 100.
 Add the writter schedule.
 Change the noise to increase the exploration to overcome the local minimal. 
 Test with 100 time steps / episode.
+
+11/4:
+Tool to foreseen how to trainning going? 
+
+Change the require service latency to be more strict -
+Increase the exploration to explore more !!! 
+Test w 100 time steps / episode first. 

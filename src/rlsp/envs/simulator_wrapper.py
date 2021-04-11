@@ -154,7 +154,7 @@ class SimulatorWrapper:
                 self.add_placement_recursive(ing, 0, sfc, scheduling_dict, placement_dict)
         # invoke simulator
         logger.debug("call apply on Simulator")
-        logger.debug(f"scheduling_dicts: {json.dumps(scheduling_dict, indent=2)}")
+        # logger.debug(f"scheduling_dicts: {json.dumps(scheduling_dict, indent=2)}")
         simulator_action = SimulatorAction(placement_dict, scheduling_dict)
         
         state = self.simulator.apply(simulator_action)

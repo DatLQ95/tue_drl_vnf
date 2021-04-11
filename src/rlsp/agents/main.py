@@ -419,7 +419,7 @@ if __name__ == '__main__':
     # cli([agent_config, network, service, sim_config, '1', '-t', '2021-01-07_13-00-43_seed1234'])
 
     # training & testing for 1 episodes
-    cli([agent_config, network, service, sim_config, service_requirement, '100', '--append-test'])
+    cli([agent_config, network, service, sim_config, service_requirement, '2', '--append-test'])
 
     # training & testing for 4 episodes, with fixed simulator seed.
     # cli([agent_config, network, service, sim_config, '4', '--append-test', '-ss', '5555'])
