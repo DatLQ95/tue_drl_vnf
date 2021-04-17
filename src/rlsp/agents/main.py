@@ -12,6 +12,9 @@ from rlsp.utils.experiment_result import ExperimentResult, LiteralStr
 from rlsp.utils.util_functions import create_simulator
 from rlsp.agents.agent_helper import AgentHelper
 from rlsp.agents.rlsp_ddpg import DDPG
+from rlsp.agents.rlsp_ddpg_baseline import DDPG_BaseLine
+from rlsp.agents.rlsp_td3_baseline import TD3_BaseLine
+from rlsp.agents.rlsp_sac_baseline import SAC_BaseLine
 import gym
 import numpy as np
 from keras import backend as K
@@ -25,8 +28,8 @@ DATETIME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
 logger = None
-# logging.basicConfig()
-# logging.root.setLevel(logging.ERROR)
+logging.basicConfig()
+logging.root.setLevel(logging.INFO)
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.argument('agent_config', type=click.Path(exists=True))
@@ -65,7 +68,7 @@ def setup(agent_config, network, service, sim_config, service_requirement, seed,
     if best:
         assert not (test or append_test or weights), "Cannot run 'best' with test, append_test, or weights"
         result_dir = f"results/{get_base_path(agent_config, network, service, sim_config)}"
-        test = select_best_agent(result_dir)
+        test = select_best_agent(agent_config, result_dir)
     # Create the AgentHelper data class
     agent_helper = AgentHelper(agent_config, network, service, sim_config, service_requirement, seed, episodes, weights, verbose, DATETIME,
                                test, append_test, sim_seed, gen_scenario)
@@ -74,6 +77,8 @@ def setup(agent_config, network, service, sim_config, service_requirement, seed,
     setup_files(agent_helper, best)
     set_random_seed(seed, agent_helper)
     agent_helper.config = get_config(agent_helper.agent_config_path)
+    agent_helper.n_steps_per_episode = get_number_steps_per_episode(agent_helper.sim_config_path)
+    logger.info(f"n_steps_per_episode: {agent_helper.n_steps_per_episode}")
     agent_helper.episode_steps = agent_helper.config['episode_steps']
     agent_helper.result.episodes = agent_helper.episodes
     
@@ -113,7 +118,7 @@ def log_info(agent_helper):
     print("agent_helper.test_mode: " + str(agent_helper.test_mode))
     print("agent_helper.callbacks: " + str(agent_helper.callbacks))
 
-def select_best_agent(result_dir, num_agents=None):
+def select_best_agent(agent_config, result_dir, num_agents=None):
     """Return best agent out of last num_agents trained in the given result_dir. If num_agents=None, consider all."""
     agent_dirs = os.listdir(result_dir)
     if num_agents is not None and num_agents > 0:
@@ -168,7 +173,6 @@ def execute(agent_helper):
             setup_files(agent_helper)
             logger.info("Testing with a different sim config file")
             test_agent(agent_helper)
-
 
 def train_agent(agent_helper):
     """Calling the agent's train function"""
@@ -277,6 +281,17 @@ def set_random_seed(seed, agent_helper):
     random.seed(seed)
     np.random.seed(seed)
 
+def get_number_steps_per_episode(sim_config):
+    with open(sim_config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+        number_steps_per_episode = config['run_duration']
+    return number_steps_per_episode
+
+def get_agent_type(config_file):
+    with open(config_file) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+        agent_type = config['agent_type']
+    return agent_type
 
 def get_config(config_file):
     """Parse agent config params in specified yaml file and return as Python dict"""
@@ -382,10 +397,24 @@ def create_environment(agent_helper):
 
 def create_agent(agent_helper):
     """ Create the RL Agent"""
+    #FIXME: use eval func to get the agent type and pass it to the func
     agent_type = agent_helper.config.get('agent_type')
-    agent = DDPG(agent_helper)
+    if agent_type == 'DDPG':
+        logger.info("DDPG")
+        agent = DDPG(agent_helper)
+    elif agent_type == 'DDPG_Baseline':
+        logger.info("DDPG_Baseline")
+        agent = DDPG_BaseLine(agent_helper)
+    elif agent_type == 'TD3_Baseline':
+        logger.info("TD3_Baseline")
+        agent = TD3_BaseLine(agent_helper)
+    elif agent_type == 'SAC_Baseline':
+        logger.info("SAC_Baseline")
+        agent = SAC_BaseLine(agent_helper)
+    else:
+        logger.error("No agent found")
+        agent = None
     return agent
-
 
 def testing(agent, env, callbacks, episode_steps, episodes, result):
     result.agent_config['episode_steps'] = episode_steps
@@ -405,10 +434,10 @@ def training(agent, env, callbacks, episodes, result):
 
 
 if __name__ == '__main__':
-    agent_config = 'res/config/agent/sample_agent.yaml'
+    agent_config = 'res/config/agent/sample_agent_100_TD3_Baseline.yaml'
     network = 'res/networks/tue_network.graphml'
     service = 'res/service_functions/tue_abc.yaml'
-    sim_config = 'res/config/simulator/test.yaml'
+    sim_config = 'res/config/simulator/trace_config_100_sim_duration.yaml'
     service_requirement = 'res/service_functions/sfc_requirement.yaml'
     # sim_config = 'res/config/simulator/det-mmp-arrival7-3_det-size0_dur100_no_traffic_prediction.yaml'
 
@@ -419,8 +448,8 @@ if __name__ == '__main__':
     # cli([agent_config, network, service, sim_config, '1', '-t', '2021-01-07_13-00-43_seed1234'])
 
     # training & testing for 1 episodes
-    cli([agent_config, network, service, sim_config, service_requirement, '2', '--append-test'])
-
+    # cli([agent_config, network, service, sim_config, service_requirement, '-w', '2021-04-14_16-32-00_seed2760', '4', '--append-test'])
+    cli([agent_config, network, service, sim_config, service_requirement, '1', '--append-test'])
     # training & testing for 4 episodes, with fixed simulator seed.
     # cli([agent_config, network, service, sim_config, '4', '--append-test', '-ss', '5555'])
 

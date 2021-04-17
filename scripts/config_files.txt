@@ -1,1 +1,1 @@
-res/config/simulator/test.yaml
+res/config/simulator/trace_config_1000_sim_duration.yaml

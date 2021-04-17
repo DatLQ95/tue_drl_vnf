@@ -50,10 +50,13 @@ class DDPG(RLSPAgent):
             prev_layer = hidden_layer
         # split output layer into separate parts for each node and SF and apply softmax individually
         out_parts = [Dense(num_nodes, activation='softmax')(prev_layer) for _ in range(num_nodes * num_sfs * num_sfcs)]
-        logger.info(f"out_parts: {out_parts}")
+        # logger.info(f"out_parts: {len(out_parts)}")
+        # logger.info(f"out_parts: {out_parts}")
         out = Concatenate()(out_parts)
         # normal output layer
-        # out = Dense(nb_actions, activation='tanh')(prev_layer)
+        # out_test = Dense(nb_actions, activation='tanh')(prev_layer)
+        # logger.info(f"nb_actions: {len(out_test)}")
+        # logger.info(f"nb_actions: {out_test}")
         actor = Model(inputs=observation_input, outputs=out)
 
         # create the critic NN

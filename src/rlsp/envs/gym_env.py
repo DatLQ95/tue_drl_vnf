@@ -184,7 +184,7 @@ class GymEnv(gym.Env):
         """
         done = False
         self.run_count += 1
-        # logger.debug(f"Action array (NN output + noise, normalized): {action}")
+        logger.debug(f"Action array (NN output + noise, normalized): {action}")
 
         # reverse action order using permutation from previous state shuffle
         if self.agent_config['shuffle_nodes']:
@@ -204,7 +204,7 @@ class GymEnv(gym.Env):
             done = True
             self.run_count = 0
 
-        # logger.debug(f"NN input (observation): {vectorized_state}")
+        logger.debug(f"NN input (observation): {vectorized_state}")
 
         # logger.info(f"network is {json.dumps(self.current_simulator_state.network, indent=2)}")
         # logger.info(f"placement is {self.current_simulator_state.placement}")
@@ -213,7 +213,7 @@ class GymEnv(gym.Env):
         # logger.info(f"traffic is {json.dumps(self.current_simulator_state.traffic, indent=2)}")
         # logger.info(f"network_stats is {json.dumps(self.current_simulator_state.network_stats, indent=2)}")
 
-        return vectorized_state, reward, done, {}
+        return vectorized_state, reward, done, {'sim_time': self.simulator_wrapper.simulator.env.now}
 
     def render(self, mode='cli'):
         """Renders the envs.

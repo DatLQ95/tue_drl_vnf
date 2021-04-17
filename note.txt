@@ -40,7 +40,15 @@ Test with 100 time steps / episode.
 
 11/4:
 Tool to foreseen how to trainning going? 
+- Tensor board & call back
 
 Change the require service latency to be more strict -
 Increase the exploration to explore more !!! 
 Test w 100 time steps / episode first. 
+
+12/4: 
+Write the DDPG using baseline 
+Test with TD3 using baseline and compare result.
+
+18/4: 
+Export the file and run on the server edge 2 and 3 to save time.

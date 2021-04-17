@@ -12,8 +12,11 @@ shuffle_nodes: False
 # Setting episode steps
 episode_steps: 96
 
-# Agent type: SAC or DDPG
-agent_type: "DDPG"
+# Agent type: SAC_Baseline or DDPG, DDPG_Baseline, TD3_Baseline, 
+agent_type: "SAC_Baseline"
+
+# # Policy to be used. Available: SPRPolicy, MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy, TD3Policy, ContinuousCritic, CnnPolicy
+policy: TD3Policy
 
 # NN Config for actor and critic
 actor_hidden_layer_nodes: [64] # Array with nodes for each layer
@@ -50,3 +53,28 @@ target_model_update: 0.0001 # default 0.001
 # learning rate alpha: size of update steps during learning (too low -> slow convergence, too high -> divergence)
 learning_rate: 0.01 # default 0.001
 learning_rate_decay: 0.001 # default 0.0
+
+
+buffer_size: 10000
+batch_size: 64
+tau: 0.0001
+gradient_steps: -1
+optimize_memory_usage: False
+create_eval_env: False
+# policy_kwargs=self.params.agent_config['policy_kwargs'],
+# verbose=self.params.agent_config['verbose'],
+# seed=self.params.agent_config['seed'],
+# seed=self.params.seed
+verbose: 1
+
+# n_env: 1
+
+# Policy and Value function NN sizes
+layers: [64]
+
+# # NN activation function
+nn_activ: th.nn.ReLU
+
+policy_delay: 2
+target_policy_noise: 0.2
+target_noise_clip: 0.5
