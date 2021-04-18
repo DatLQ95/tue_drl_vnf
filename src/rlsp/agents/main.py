@@ -67,7 +67,7 @@ def setup(agent_config, network, service, sim_config, service_requirement, seed,
     """Overall setup for the rl variables"""
     if best:
         assert not (test or append_test or weights), "Cannot run 'best' with test, append_test, or weights"
-        result_dir = f"results/{get_base_path(agent_config, network, service, sim_config)}"
+        result_dir = f"results/{get_base_path(agent_config, network, service, sim_config, service_requirement)}"
         test = select_best_agent(agent_config, result_dir)
     # Create the AgentHelper data class
     agent_helper = AgentHelper(agent_config, network, service, sim_config, service_requirement, seed, episodes, weights, verbose, DATETIME,
@@ -199,13 +199,14 @@ def wrap_up(agent_helper):
     logger.info(f"See {agent_helper.logfile} for {'full (DEBUG)' if agent_helper.verbose else 'INFO'} log output.")
 
 
-def get_base_path(agent_config_path, network_path, service_path, sim_config_path):
+def get_base_path(agent_config_path, network_path, service_path, sim_config_path, service_requirement_path):
     """Return base path based on specified input paths."""
     agent_config_stem = os.path.splitext(os.path.basename(agent_config_path))[0]
     network_stem = os.path.splitext(os.path.basename(network_path))[0]
     service_stem = os.path.splitext(os.path.basename(service_path))[0]
     config_stem = os.path.splitext(os.path.basename(sim_config_path))[0]
-    return f"{agent_config_stem}/{network_stem}/{service_stem}/{config_stem}"
+    service_requirement_stem = os.path.splitext(os.path.basename(service_requirement_path))[0]
+    return f"{agent_config_stem}/{network_stem}/{service_stem}/{config_stem}/{service_requirement_stem}"
 
 
 def setup_files(agent_helper, best=False):
@@ -219,10 +220,10 @@ def setup_files(agent_helper, best=False):
     agent_helper.agent_config_path = click.format_filename(agent_helper.agent_config_path)
     agent_helper.network_path = click.format_filename(agent_helper.network_path)
     agent_helper.service_path = click.format_filename(agent_helper.service_path)
+    agent_helper.service_requirement_path = click.format_filename(agent_helper.service_requirement_path)
 
     # set result and graph base path based on network, service, config name
-    base_path = get_base_path(agent_helper.agent_config_path, agent_helper.network_path,
-                              agent_helper.service_path, agent_helper.sim_config_path)
+    base_path = get_base_path(agent_helper.agent_config_path, agent_helper.network_path, agent_helper.service_path, agent_helper.sim_config_path, agent_helper.service_requirement_path)
     agent_helper.result_base_path = f"./results/{base_path}"
     agent_helper.graph_base_path = f"./graph/{base_path}"
 
@@ -255,12 +256,13 @@ def setup_files(agent_helper, best=False):
 
     # Copy files to result dir
     agent_helper.agent_config_path, agent_helper.network_path, agent_helper.service_path, \
-        agent_helper.sim_config_path = copy_input_files(
+        agent_helper.sim_config_path, agent_helper.service_requirement_path = copy_input_files(
             agent_helper.config_dir,
             agent_helper.agent_config_path,
             agent_helper.network_path,
             agent_helper.service_path,
-            agent_helper.sim_config_path)
+            agent_helper.sim_config_path,
+            agent_helper.service_requirement_path)
 
     if agent_helper.gen_scenario_test:
         weights = f"{agent_helper.gen_scenario_result_base_path}/{agent_helper.test}/weights*"
@@ -323,20 +325,22 @@ def get_config(config_file):
     return config
 
 
-def copy_input_files(target_dir, agent_config_path, network_path, service_path, sim_config_path):
+def copy_input_files(target_dir, agent_config_path, network_path, service_path, sim_config_path, service_requirement_path):
     """Create the results directory and copy input files"""
     new_agent_config_path = target_dir + os.path.basename(agent_config_path)
     new_network_path = target_dir + os.path.basename(network_path)
     new_service_path = target_dir + os.path.basename(service_path)
     new_sim_config_path = target_dir + os.path.basename(sim_config_path)
+    new_service_requirement_path = target_dir + os.path.basename(service_requirement_path)
 
     os.makedirs(target_dir, exist_ok=True)
     copyfile(agent_config_path, new_agent_config_path)
     copyfile(network_path, new_network_path)
     copyfile(service_path, new_service_path)
     copyfile(sim_config_path, new_sim_config_path)
+    copyfile(service_requirement_path, new_service_requirement_path)
 
-    return new_agent_config_path, new_network_path, new_service_path, new_sim_config_path
+    return new_agent_config_path, new_network_path, new_service_path, new_sim_config_path, new_service_requirement_path
 
 
 def setup_logging(verbose, logfile):
@@ -379,6 +383,7 @@ def create_environment(agent_helper):
     agent_helper.result.env_config['network_file'] = agent_helper.network_path
     agent_helper.result.env_config['service_file'] = agent_helper.service_path
     agent_helper.result.env_config['sim_config_file'] = agent_helper.sim_config_path
+    agent_helper.result.env_config['service_requirement_file'] = agent_helper.service_requirement_path
     agent_helper.result.env_config['simulator_cls'] = "siminterface.Simulator"
 
     # Get the environment and extract the number of actions.
@@ -434,10 +439,10 @@ def training(agent, env, callbacks, episodes, result):
 
 
 if __name__ == '__main__':
-    agent_config = 'res/config/agent/sample_agent_100_TD3_Baseline.yaml'
+    agent_config = 'res/config/agent/sample_agent_1000_DDPG_Baseline.yaml'
     network = 'res/networks/tue_network.graphml'
     service = 'res/service_functions/tue_abc.yaml'
-    sim_config = 'res/config/simulator/trace_config_100_sim_duration.yaml'
+    sim_config = 'res/config/simulator/trace_config_1000_sim_duration.yaml'
     service_requirement = 'res/service_functions/sfc_requirement.yaml'
     # sim_config = 'res/config/simulator/det-mmp-arrival7-3_det-size0_dur100_no_traffic_prediction.yaml'
 
@@ -445,10 +450,10 @@ if __name__ == '__main__':
     # cli([agent_config, network, service, sim_config, '1', '-v'])
 
     # testing for 4 episode
-    # cli([agent_config, network, service, sim_config, '1', '-t', '2021-01-07_13-00-43_seed1234'])
+    # cli([agent_config, network, service, sim_config, service_requirement, '1', '-t', '2021-04-16_00-14-35_seed1109'])
 
     # training & testing for 1 episodes
-    # cli([agent_config, network, service, sim_config, service_requirement, '-w', '2021-04-14_16-32-00_seed2760', '4', '--append-test'])
+    # cli([agent_config, network, service, sim_config, service_requirement, '-w', '2021-04-16_00-14-35_seed1109', '4', '--append-test'])
     cli([agent_config, network, service, sim_config, service_requirement, '1', '--append-test'])
     # training & testing for 4 episodes, with fixed simulator seed.
     # cli([agent_config, network, service, sim_config, '4', '--append-test', '-ss', '5555'])
@@ -458,7 +463,7 @@ if __name__ == '__main__':
     #      '2020-10-13_07-47-53_seed9764'])
 
     # test select_best
-    # cli([agent_config, network, service, sim_config, '1', '--best', '--sim-seed', '1234'])
+    # cli([agent_config, network, service, sim_config, service_requirement, '1', '--best', '--sim-seed', '1234'])
 
     # Generalization: Test on two scenarios with the same trained weights
     # cli([agent_config, network, service, sim_config, '1', '--append-test', '-ss', '5555', '-gs', gen_sim_config])

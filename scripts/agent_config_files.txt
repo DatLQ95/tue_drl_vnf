@@ -1,1 +1,1 @@
-res/config/agent/sample_agent_1000_SAC_Baseline.yaml
+res/config/agent/sample_agent_1000_DDPG_Baseline.yaml
