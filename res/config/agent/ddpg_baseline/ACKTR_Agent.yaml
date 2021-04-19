@@ -1,0 +1,123 @@
+# module for configuring the RL agent
+# configuration parameters are loaded and used both when using the agent via the CLI and via the interface
+# all parameters are required, defaults are in comments
+
+# observation_space = ['ingress_traffic', 'node_load']
+observation_space:
+  - ingress_traffic
+
+# shuffle the order of nodes in state and action. slower but should be more effective. default = False
+shuffle_nodes: False
+
+# Setting episode steps
+episode_steps: 96
+
+# Agent type: SAC or DDPG
+agent_type: "DDPG_Baseline"
+
+# # NN Config for actor and critic
+# actor_hidden_layer_nodes: [64] # Array with nodes for each layer
+# actor_hidden_layer_activation: "relu"
+# critic_hidden_layer_nodes: [64] # Array with nodes for each layer
+# critic_hidden_layer_activation: "relu"
+
+# objective and reward
+# objective: 'prio-flow'
+# target_success: 'auto'
+objective: 'sfc_with_priority'
+flow_weight: 0.4
+delay_weight: 0.6
+
+# # Memory Config
+# mem_limit: 10000
+# mem_window_length: 1
+
+# # Agent params
+# rand_theta: 0.15 # for random process, for exploration
+# rand_mu: 0.0 # Random mean of the noise; should be 0
+# # sigma: variance of the random noise. too high -> jumpy actions & rewards; too low -> may get stuck at bad solution
+rand_sigma: 0.2 # 0.2 - 0.3 seem to work well here
+
+# # overall steps (not within an episode) in which experiences are recorded but no training happens
+# nb_steps_warmup_critic: 200
+# nb_steps_warmup_actor: 200
+
+# for discounted return, when calculating the Q values and training the critic
+# gamma: 0.99 # default 0.99
+# tau: for speed soft update of target actor and critic networks (higher is faster)
+# target_model_update: 0.0001 # default 0.001
+
+# # learning rate alpha: size of update steps during learning (too low -> slow convergence, too high -> divergence)
+learning_rate: 0.01 # default 0.001
+# learning_rate_decay: 0.001 # default 0.0
+
+buffer_size: 100
+batch_size: 10000
+tau: 0.0001
+gamma: 0.99
+gradient_steps: -1
+optimize_memory_usage: False
+create_eval_env: False
+# policy_kwargs=self.params.agent_config['policy_kwargs'],
+# verbose=self.params.agent_config['verbose'],
+# seed=self.params.agent_config['seed'],
+tensorboard_log: "./tb/ddpg/",
+# seed=self.params.seed
+verbose: 1
+
+# n_env: 1
+
+# Policy and Value function NN sizes
+layers: [64,64]
+
+# # NN activation function
+nn_activ: th.nn.ReLU
+
+# # Policy to be used. Available: SPRPolicy, MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy
+policy: CustomPolicy
+
+# # Discount factor
+# gamma: 0.99
+
+# # The number of steps to run for each environment per update 
+# # (i.e. batch size is n_steps * n_env where n_env is number of environment copies running in parallel)
+# n_steps: 20
+
+# # Entropy coefficient for the loss calculation (default 0.01)
+# ent_coef: 0.01
+
+# # The learning rate, it can be a function
+# learning_rate: 0.25
+
+# # Value function coefficient for the loss calculation
+# vf_coef: 0.25
+
+# vf_fisher_coef: 1.0
+
+# kfac_clip: 0.001
+
+# kfac_update: 1
+
+# lr_schedule: linear
+
+# async_eigen_decomp: False
+
+# # The maximum value for the gradient clipping
+# max_grad_norm: 0.5
+
+# # Factor for trade-off of bias vs variance for Generalized Advantage Estimator (null for default advantage estimator)
+# gae_lambda: null
+
+
+# # (int) the verbosity level:
+# # 0 none, 1 training information, 2 tensorflow debug 
+# verbose: 0
+
+# # Episode Length
+# episode_length: 20000    # Simulator timesteps
+
+# # Reward history length
+# reward_history_length: 1000
+
+# # Testing duration in simulator timesteps
+# testing_duration: 20000

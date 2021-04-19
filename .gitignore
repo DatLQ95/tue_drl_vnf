@@ -121,5 +121,5 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-/tmp
 /tb
+/tmp
