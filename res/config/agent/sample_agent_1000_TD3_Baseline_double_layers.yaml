@@ -13,7 +13,7 @@ shuffle_nodes: False
 episode_steps: 96
 
 # Agent type: SAC or DDPG, DDPG_Baseline, TD3_Baseline, 
-agent_type: "DDPG_Baseline"
+agent_type: "TD3_Baseline"
 
 # # Policy to be used. Available: SPRPolicy, MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy, TD3Policy, ContinuousCritic, CnnPolicy
 policy: TD3Policy
@@ -70,7 +70,7 @@ verbose: 1
 # n_env: 1
 
 # Policy and Value function NN sizes
-layers: [64]
+layers: [64, 64]
 
 # # NN activation function
 nn_activ: th.nn.ReLU

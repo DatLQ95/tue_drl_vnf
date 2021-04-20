@@ -70,7 +70,7 @@ verbose: 1
 # n_env: 1
 
 # Policy and Value function NN sizes
-layers: [64]
+layers: [64, 64]
 
 # # NN activation function
 nn_activ: th.nn.ReLU
