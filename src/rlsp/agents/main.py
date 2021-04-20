@@ -439,10 +439,10 @@ def training(agent, env, callbacks, episodes, result):
 
 
 if __name__ == '__main__':
-    agent_config = 'res/config/agent/sample_agent_1000_DDPG_Baseline.yaml'
+    agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline.yaml'
     network = 'res/networks/tue_network.graphml'
     service = 'res/service_functions/tue_abc.yaml'
-    sim_config = 'res/config/simulator/trace_config_1000_sim_duration.yaml'
+    sim_config = 'res/config/simulator/trace_config_100_sim_duration.yaml'
     service_requirement = 'res/service_functions/sfc_requirement.yaml'
     # sim_config = 'res/config/simulator/det-mmp-arrival7-3_det-size0_dur100_no_traffic_prediction.yaml'
 

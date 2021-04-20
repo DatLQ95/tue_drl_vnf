@@ -18,10 +18,10 @@ logging.basicConfig()
 logging.root.setLevel(logging.DEBUG)
 
 
-AGENT_CONFIG = 'res/config/agent/sample_agent.yaml'
+AGENT_CONFIG = 'res/config/agent/sample_agent_100_DDPG_Baseline.yaml'
 NETWORK = 'res/networks/tue_network.graphml'
 SERVICE = 'res/service_functions/tue_abc.yaml'
-SIM_CONFIG = 'res/config/simulator/test.yaml'
+SIM_CONFIG = 'res/config/simulator/trace_config_100_sim_duration.yaml'
 SERVICE_REQUIREMENT = 'res/service_functions/sfc_requirement.yaml'
 
 class TestGymEnvironment(TestCase):

@@ -13,8 +13,8 @@ shuffle_nodes: False
 # Setting episode steps
 episode_steps: 96
 
-# Agent type: SAC or DDPG, DDPG_Baseline, TD3_Baseline, 
-agent_type: "DDPG_Baseline"
+# Agent type: SAC_Baseline or DDPG, DDPG_Baseline, TD3_Baseline, 
+agent_type: "SAC_Baseline"
 
 # # Policy to be used. Available: SPRPolicy, MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy, TD3Policy, ContinuousCritic, CnnPolicy
 policy: TD3Policy
