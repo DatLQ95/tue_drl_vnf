@@ -16,7 +16,7 @@ episode_steps: 96
 agent_type: "SAC_Baseline"
 
 # # Policy to be used. Available: SPRPolicy, MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy, TD3Policy, ContinuousCritic, CnnPolicy
-policy: MlpPolicy
+policy: SACPolicy
 
 # NN Config for actor and critic
 actor_hidden_layer_nodes: [64] # Array with nodes for each layer
