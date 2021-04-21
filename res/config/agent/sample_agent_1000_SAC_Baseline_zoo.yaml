@@ -46,18 +46,18 @@ nb_steps_warmup_critic: 200
 nb_steps_warmup_actor: 200
 
 # for discounted return, when calculating the Q values and training the critic
-gamma: 0.99 # default 0.99
+gamma: 0.98 # default 0.99
 # tau: for speed soft update of target actor and critic networks (higher is faster)
 target_model_update: 0.0001 # default 0.001
 
 # learning rate alpha: size of update steps during learning (too low -> slow convergence, too high -> divergence)
-learning_rate: 0.01 # default 0.001
+learning_rate: 0.00073 # default 0.001
 learning_rate_decay: 0.001 # default 0.0
 
 
-buffer_size: 10000
-batch_size: 64
-tau: 0.0001
+buffer_size: 100000
+batch_size: 256
+tau: 0.02
 gradient_steps: -1
 optimize_memory_usage: False
 create_eval_env: False
@@ -70,7 +70,7 @@ verbose: 1
 # n_env: 1
 
 # Policy and Value function NN sizes
-layers: [64]
+layers: [400, 300]
 
 # # NN activation function
 nn_activ: th.nn.ReLU
@@ -78,3 +78,10 @@ nn_activ: th.nn.ReLU
 policy_delay: 2
 target_policy_noise: 0.2
 target_noise_clip: 0.5
+learning_starts: 3000
+log_std_init: -3
+
+# sde?
+use_sde_at_warmup: False
+use_sde: False
+sde_sample_freq: 64

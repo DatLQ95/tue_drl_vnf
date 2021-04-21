@@ -13,7 +13,7 @@ shuffle_nodes: False
 episode_steps: 96
 
 # Agent type: SAC or DDPG, DDPG_Baseline, TD3_Baseline, 
-agent_type: "SAC_Baseline"
+agent_type: "TD3_Baseline"
 
 # # Policy to be used. Available: SPRPolicy, MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy, TD3Policy, ContinuousCritic, CnnPolicy
 policy: MlpPolicy
@@ -39,23 +39,23 @@ mem_window_length: 1
 rand_theta: 0.15 # for random process, for exploration
 rand_mu: 0.0 # Random mean of the noise; should be 0
 # sigma: variance of the random noise. too high -> jumpy actions & rewards; too low -> may get stuck at bad solution
-rand_sigma: 0.2 # 0.2 - 0.3 seem to work well here
+rand_sigma: 0.1 # 0.2 - 0.3 seem to work well here
 
 # overall steps (not within an episode) in which experiences are recorded but no training happens
 nb_steps_warmup_critic: 200
 nb_steps_warmup_actor: 200
 
 # for discounted return, when calculating the Q values and training the critic
-gamma: 0.99 # default 0.99
+gamma: 0.98 # default 0.99
 # tau: for speed soft update of target actor and critic networks (higher is faster)
 target_model_update: 0.0001 # default 0.001
 
 # learning rate alpha: size of update steps during learning (too low -> slow convergence, too high -> divergence)
-learning_rate: 0.01 # default 0.001
+learning_rate: 0.001 # default 0.001
 learning_rate_decay: 0.001 # default 0.0
 
 
-buffer_size: 10000
+buffer_size: 200000
 batch_size: 64
 tau: 0.0001
 gradient_steps: -1
@@ -70,7 +70,7 @@ verbose: 1
 # n_env: 1
 
 # Policy and Value function NN sizes
-layers: [64]
+layers: [400, 300]
 
 # # NN activation function
 nn_activ: th.nn.ReLU
@@ -78,3 +78,4 @@ nn_activ: th.nn.ReLU
 policy_delay: 2
 target_policy_noise: 0.2
 target_noise_clip: 0.5
+learning_starts: 10000

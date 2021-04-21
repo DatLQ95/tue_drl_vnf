@@ -66,7 +66,7 @@ class SAC_BaseLine(OffPolicy_BaseLine):
 
         # policy_kwargs = dict(activation_fn=activ_function,
         #              net_arch=[dict(pi=[32, 32], qf=[32, 32])])
-        policy_kwargs = dict(net_arch=self.agent_helper.config['layers'])
+        policy_kwargs = dict(log_std_init=self.agent_helper.config['log_std_init'], net_arch=self.agent_helper.config['layers'])
         self.model = SAC(
             self.policy,
             self.env,
@@ -81,7 +81,10 @@ class SAC_BaseLine(OffPolicy_BaseLine):
             create_eval_env=self.agent_helper.config['create_eval_env'],
             policy_kwargs=policy_kwargs,
             verbose=self.agent_helper.config['verbose'],
+            learning_starts=self.agent_helper.config['learning_starts'],
             tensorboard_log=self.agent_helper.graph_path,
+            use_sde=self.agent_helper.config['use_sde'],
+            use_sde_at_warmup=self.agent_helper.config['use_sde_at_warmup'],
             seed=self.agent_helper.seed
         )
         pass
