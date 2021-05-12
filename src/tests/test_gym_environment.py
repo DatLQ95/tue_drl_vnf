@@ -39,7 +39,8 @@ class TestGymEnvironment(TestCase):
         env = gym.make('rlsp-env-v1', agent_config=config, simulator=simulator, service_requirement_file=SERVICE_REQUIREMENT, network_file=NETWORK, service_file=SERVICE)
         np.random.seed(123)
         env.seed(123)
-        env.reset()
+        obs = env.reset()
+        logger.info(f"obs {obs}")
         action = env.action_space.sample()
 #         action = [0.1528252,  0.19189513, 0.13835746, 0.5151016,  0.8268603,  0.11794249,
 #  0.07534754, 0.8041661,  0.6766331,  0.83818173, 0.74750483, 0.2683317,

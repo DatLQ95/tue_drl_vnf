@@ -82,9 +82,9 @@ class TD3_BaseLine(OffPolicy_BaseLine):
             verbose=self.agent_helper.config['verbose'],
             learning_starts=self.agent_helper.config['learning_starts'],
             tensorboard_log=self.agent_helper.graph_path,
-            # policy_delay = self.agent_helper.config['policy_delay'],
-            # target_policy_noise= self.agent_helper.config['target_policy_noise'],
-            # target_noise_clip= self.agent_helper.config['target_noise_clip'],
+            policy_delay = self.agent_helper.config['policy_delay'],
+            target_policy_noise= self.agent_helper.config['target_policy_noise'],
+            target_noise_clip= self.agent_helper.config['target_noise_clip'],
             seed=self.agent_helper.seed
         )
         pass
