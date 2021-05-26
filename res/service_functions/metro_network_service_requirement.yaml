@@ -1,0 +1,18 @@
+# Simple SLA for each service function chain. 
+
+sfc_list:
+  search:
+    priority: 4
+    delay_requirement: 410
+  
+  shop:
+    priority: 2
+    delay_requirement: 425
+
+  web:
+    priority: 3
+    delay_requirement: 420
+
+  media:
+    priority: 1
+    delay_requirement: 440

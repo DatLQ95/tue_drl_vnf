@@ -1,0 +1,5 @@
+# module for configuring the simulator
+# configuration parameters are loaded and used both when using the simulator via the CLI and via the interface
+# all parameters are required, defaults are in comments
+
+trace_path: res/traces/trace_metro_network_users.csv

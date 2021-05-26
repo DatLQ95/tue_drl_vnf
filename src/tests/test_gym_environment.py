@@ -11,7 +11,9 @@ from siminterface.simulator import Simulator
 from simulator.omnet_simulator import OmnetSimulator
 import logging
 from rlsp.envs.gym_env import GymEnv
+from rlsp.envs.metro_network_env import MetroNetworkEnv
 import logging
+from stable_baselines3.common.env_checker import check_env
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
@@ -24,7 +26,29 @@ SERVICE = 'res/service_functions/tue_abc.yaml'
 SIM_CONFIG = 'res/config/simulator/trace_config_100_sim_duration.yaml'
 SERVICE_REQUIREMENT = 'res/service_functions/sfc_requirement.yaml'
 
+
+NETWORK_TRIANGLE =  'res/networks/tue_network_triangle.graphml'
+USER_TRACE = 'res/traces/trace_metro_network_users.csv'
+SERVICE_TRIANGLE = 'res/service_functions/metro_network_services.yaml'
+SERVICE_REQUIREMENT_TRIANGLE = 'res/service_functions/metro_network_service_requirement.yaml'
+
+
 class TestGymEnvironment(TestCase):
+    def test_metro_network_env(self):
+        # config = get_config(AGENT_CONFIG)
+        # # simulator = Simulator(NETWORK, SERVICE, USER_CONFIG)
+        # env = gym.make('metro_network-env-v1', agent_config=config, network_file=NETWORK, service_file=SERVICE, user_trace_file = USER_TRACE)
+        # np.random.seed(123)
+        # env.seed(123)
+        # obs = env.reset()
+        # logger.info(f"obs {obs}")
+        # action = env.action_space.sample()
+        # env.step(action)
+
+        config = get_config(AGENT_CONFIG)
+        env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, service_file=SERVICE_TRIANGLE, user_trace_file = USER_TRACE, service_requirement_file = SERVICE_REQUIREMENT_TRIANGLE)
+        check_env(env)
+
     def test_gym_registration(self):
         config = get_config(AGENT_CONFIG)
         simulator = Simulator(NETWORK, SERVICE, SIM_CONFIG)
@@ -100,4 +124,4 @@ class TestGymEnvironment(TestCase):
 
 if __name__ == "__main__":
     testGym = TestGymEnvironment()
-    testGym.test_step()
+    testGym.test_metro_network_env()

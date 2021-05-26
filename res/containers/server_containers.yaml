@@ -1,0 +1,17 @@
+node4:
+  search_server_4:
+  shop_server_4:
+  web_server_4:
+  media_server_4:
+      
+node3:
+  search_server:
+  shop_server_3:
+  web_server_3:
+  media_server_3:
+
+node2:
+  search_server_2:
+  shop_server_2:
+  web_server_2:
+  media_server_2:

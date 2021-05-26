@@ -1,0 +1,19 @@
+# Maximum = 1 = 100% 
+
+node4:
+  search: 1
+  shop: 1
+  web: 1
+  media: 1
+
+node3:
+  search: 0.5
+  shop: 0.2
+  web: 1
+  media: 0
+
+node2:
+  search: 1
+  shop: 0
+  web: 0
+  media: 0

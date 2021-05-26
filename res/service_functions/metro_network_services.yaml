@@ -1,0 +1,39 @@
+# simple chain of 3 SFs a->b->c with deterministic processing delays
+
+# list of SFCs and involved SFs (order of SFs matters). names need to match dummy schedule and placement (dummy_data.py)
+sfc_list:
+  search:
+    - load_balancer
+    - search_server
+  
+  shop:
+    - load_balancer
+    - shop_server
+
+  web:
+    - load_balancer
+    - web_server
+
+  media:
+    - load_balancer
+    - media_server
+
+# SF attributes (for now, processing delay)
+sf_list:
+  load_balancer:
+    processing_delay_mean: 20.0
+    processing_delay_stdev: 0.0
+  search_server:
+    processing_delay_mean: 20.0
+    processing_delay_stdev: 0.0
+  shop_server:
+    processing_delay_mean: 20.0
+    processing_delay_stdev: 0.0
+  web_server:
+    processing_delay_mean: 20.0
+    processing_delay_stdev: 0.0
+  media_server:
+    processing_delay_mean: 20.0
+    processing_delay_stdev: 0.0
+
+  
