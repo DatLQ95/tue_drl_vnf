@@ -142,12 +142,12 @@ class MetroNetworkEnv(gym.Env):
         done = False
         #FIXME: testing only NEDD TO BE TESTED here!
         action = [random.random() for _ in range(72)]
-        print(action)
+        logger.info(f"action : {action}")
         action_processor = ActionScheduleProcessor(self.env_limits.MAX_NODE_COUNT, self.env_limits.MAX_SF_CHAIN_COUNT,
                                                    self.env_limits.MAX_SERVICE_FUNCTION_COUNT)
         action = action_processor.process_action(action)
         scheduling = np.reshape(action, self.env_limits.scheduling_shape)
-        print(scheduling)
+        logger.info(f"scheduling : {scheduling}")
         self.step_count +=1
         self.dockerHelper.set_weight(scheduling)
         self.dockerHelper.set_user_number(self.step_count)
@@ -293,7 +293,7 @@ class MetroNetworkEnv(gym.Env):
         ingress traffic: [search_client_node0, shop_client_node0, web_Client_node0, media_client_node0, search_client_node1, shop_client_node1, web_client_node1, media_client_node1]
         ouput: [search_client_node0, shop_client_node0, web_Client_node0, media_client_node0, search_client_node1, shop_client_node1, web_client_node1, media_client_node1]
         """
-        #TODO: 
+        #TODO: convert dict to list !
         logger.info(f"normalize_ingress_traffic: {ingress_traffic}")
         pass
 
@@ -310,8 +310,8 @@ docker_lb_container_path = 'res/containers/load_balancer_containers.yaml'
 config = get_config(AGENT_CONFIG)
 env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, service_file=SERVICE_TRIANGLE, user_trace_file = USER_TRACE, service_requirement_file = SERVICE_REQUIREMENT_TRIANGLE, ingress_distribution_file=ingress_distribution_file_path, container_client_file=docker_client_services_path, container_server_file=docker_server_services_path, container_lb_file=docker_lb_container_path)
 
-latency = {'search': 457.0, 'shop': 464.0, 'web': 476.0, 'media': 433.0}
-dropped_conn = {'search': 0.0, 'shop': 0.0, 'web': 0.0, 'media': 0.0}
-succ_conn = {'search': 84.0, 'shop': 96.0, 'web': 99.0, 'media': 40.0}
-env.calculate_reward(latency= latency, dropped_conn=dropped_conn, success_conn= succ_conn)
+# latency = {'search': 457.0, 'shop': 464.0, 'web': 476.0, 'media': 433.0}
+# dropped_conn = {'search': 0.0, 'shop': 0.0, 'web': 0.0, 'media': 0.0}
+# succ_conn = {'search': 84.0, 'shop': 96.0, 'web': 99.0, 'media': 40.0}
+# env.calculate_reward(latency= latency, dropped_conn=dropped_conn, success_conn= succ_conn)
         

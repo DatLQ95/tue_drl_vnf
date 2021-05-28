@@ -47,20 +47,48 @@ class DockerHelper():
         Output: update the load balancer service.
         """
         logger.info(f"weights: {weight}")
-        print(weight)
-        cnt = 0
+        node_no = 0
+        service_no = 0
+        vnf_no = 0
+        node_dst_no = 0
+        node_list = list(self.docker_lbs.keys())
+        len(node_list)
+        # logger.info(f"len(node_list): {len(node_list)}")
+        # logger.info(f"self.docker_lbs: {self.docker_lbs}")
         for container in self.docker_lbs.values():
-            # print(container)
+            # logger.info(f"container: {container}")
             for name, weights in container.items():
-                for key in weights.keys():
-                    if("WEIGHT" in str(key)):
-                        print(str(key))
-                        weights[key] = round(weight[cnt] * 100)
-                        cnt = cnt + 1
                 
-                print(weights)
+                for key in weights.keys():
+                    # logger.info(f"weights: {weights}")
+                    if("WEIGHT" in str(key)):
+                        # logger.info(f"node_no: {key}")
+                        # logger.info(f"node_no: {node_no}")
+                        # logger.info(f"service_no: {service_no}")
+                        # logger.info(f"vnf_no: {vnf_no}")
+                        # logger.info(f"node_dst_no: {node_dst_no}")
+                        
+                        weights[key] = round(weight[node_no][service_no][vnf_no][node_dst_no] * 100)
+
+                        if node_dst_no < len(node_list):
+                            node_dst_no = node_dst_no + 1
+
+                        if node_dst_no == len(node_list):
+                            service_no = service_no + 1
+                            node_dst_no = 0
+
+                        if service_no == 4 : 
+                            vnf_no = vnf_no + 1
+                            service_no = 0
+                            node_dst_no = 0
+                            break
+                logger.info(f"container: {name}, weights: {weights}")
                 service = self.get_service(name)
                 self.update_service(service, weights)
+            node_no = node_no + 1
+            vnf_no = 0
+            service_no = 0
+            node_dst_no = 0
 
     def get_service(self, service_name):
         """
@@ -71,7 +99,7 @@ class DockerHelper():
         found = False
         list_services = self.client.services.list()
         for service in list_services:
-            if service.name == service_name:
+            if service_name in service.name:
                 service_id = service.id
                 found = True
         if found == False:
@@ -103,24 +131,27 @@ class DockerHelper():
             # node3 = edge3
             # node2 = edge2
             # print(self.docker_services[trace['node']])
+            logger.info(f"ingress distributuon  {self.get_ingress_distribution}")
+            logger.info(f"trace {trace}")
             node_list = list(self.docker_clients.keys())
             for node in node_list:
                 for key,value in self.docker_clients[node].items():
+                    logger.info(f"container name {key}")
                     service = self.get_service(key)
                     if value['PORT_NUMBER'] == 8001: 
-                        user = float(trace['search_service']) * self.get_ingress_distribution[node]['search_service']
+                        user = float(trace['search_service']) * self.get_ingress_distribution[node]['search']
                         user_no = int(user)
                         value['USER_NO'] = user_no
                     elif value['PORT_NUMBER'] == 8002: 
-                        user = float(trace['shop_service']) * self.get_ingress_distribution[node]['shop_service']
+                        user = float(trace['shop_service']) * self.get_ingress_distribution[node]['shop']
                         user_no = int(user)
                         value['USER_NO'] = user_no
                     elif value['PORT_NUMBER'] == 8003: 
-                        user = float(trace['web_service']) * self.get_ingress_distribution[node]['web_service']
+                        user = float(trace['web_service']) * self.get_ingress_distribution[node]['web']
                         user_no = int(user)
                         value['USER_NO'] = user_no
                     elif value['PORT_NUMBER'] == 8004: 
-                        user = float(trace['media_service']) * self.get_ingress_distribution[node]['media_service']
+                        user = float(trace['media_service']) * self.get_ingress_distribution[node]['media']
                         user_no = int(user)
                         value['USER_NO'] = user_no
                     else :

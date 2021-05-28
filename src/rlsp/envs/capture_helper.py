@@ -171,6 +171,6 @@ class CaptureHelper():
                 break
         return flag_got_value, return_value
 
-# ingress_nodes = ["node4"]
-# capture_helper = CaptureHelper(docker_client_services_path= docker_client_services_path, docker_server_services_path= docker_server_services_path, ingress_distribution_file_path = ingress_distribution_file_path)
-# capture_helper.capture_data(ingress_nodes)
+ingress_nodes = ["node4"]
+capture_helper = CaptureHelper(docker_client_services_path= docker_client_services_path, docker_server_services_path= docker_server_services_path, ingress_distribution_file_path = ingress_distribution_file_path)
+capture_helper.capture_data(ingress_nodes)

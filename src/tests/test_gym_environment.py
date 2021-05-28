@@ -32,6 +32,15 @@ USER_TRACE = 'res/traces/trace_metro_network_users.csv'
 SERVICE_TRIANGLE = 'res/service_functions/metro_network_services.yaml'
 SERVICE_REQUIREMENT_TRIANGLE = 'res/service_functions/metro_network_service_requirement.yaml'
 
+# AGENT_CONFIG = 'res/config/agent/sample_agent_100_DDPG_Baseline.yaml'
+# NETWORK_TRIANGLE =  'res/networks/tue_network_triangle.graphml'
+# USER_TRACE = 'res/traces/trace_metro_network_users.csv'
+# SERVICE_TRIANGLE = 'res/service_functions/metro_network_services.yaml'
+# SERVICE_REQUIREMENT_TRIANGLE = 'res/service_functions/metro_network_service_requirement.yaml'
+docker_client_services_path = 'res/containers/client_containers.yaml'
+docker_server_services_path = 'res/containers/server_containers.yaml'
+ingress_distribution_file_path = 'res/service_functions/metro_network_ingress_distribution.yaml'
+docker_lb_container_path = 'res/containers/load_balancer_containers.yaml'
 
 class TestGymEnvironment(TestCase):
     def test_metro_network_env(self):
@@ -46,7 +55,7 @@ class TestGymEnvironment(TestCase):
         # env.step(action)
 
         config = get_config(AGENT_CONFIG)
-        env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, service_file=SERVICE_TRIANGLE, user_trace_file = USER_TRACE, service_requirement_file = SERVICE_REQUIREMENT_TRIANGLE)
+        env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, service_file=SERVICE_TRIANGLE, user_trace_file = USER_TRACE, service_requirement_file = SERVICE_REQUIREMENT_TRIANGLE, ingress_distribution_file=ingress_distribution_file_path, container_client_file=docker_client_services_path, container_server_file=docker_server_services_path, container_lb_file=docker_lb_container_path)
         check_env(env)
 
     def test_gym_registration(self):

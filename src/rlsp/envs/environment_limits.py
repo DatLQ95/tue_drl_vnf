@@ -71,7 +71,7 @@ class EnvironmentLimits:
         """
         shape = (self.MAX_NODE_COUNT * self.MAX_SF_CHAIN_COUNT + (self.observation_space_len - 1) * self.MAX_NODE_COUNT,)
 
-        return spaces.Box(low=0, high=100, shape=shape)
+        return spaces.Box(low=0, high=100000, shape=shape)
 
     def create_filled_node_load_array(self, default=0.0) -> np.ndarray:
         """creates an array with shape and type of the node_load array.
