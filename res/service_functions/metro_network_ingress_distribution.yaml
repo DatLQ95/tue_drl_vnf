@@ -1,7 +1,7 @@
 # Maximum = 1 = 100% 
 
 node4:
-  search: 1
+  search: 0
   shop: 0
   web: 0
   media: 0

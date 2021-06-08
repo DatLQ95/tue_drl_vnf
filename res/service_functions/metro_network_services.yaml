@@ -6,17 +6,17 @@ sfc_list:
     - load_balancer
     - search_server
   
-  shop:
-    - load_balancer
-    - shop_server
+  # shop:
+  #   - load_balancer
+  #   - shop_server
 
-  web:
-    - load_balancer
-    - web_server
+  # web:
+  #   - load_balancer
+  #   - web_server
 
-  media:
-    - load_balancer
-    - media_server
+  # media:
+  #   - load_balancer
+  #   - media_server
 
 # SF attributes (for now, processing delay)
 sf_list:
@@ -26,14 +26,14 @@ sf_list:
   search_server:
     processing_delay_mean: 20.0
     processing_delay_stdev: 0.0
-  shop_server:
-    processing_delay_mean: 20.0
-    processing_delay_stdev: 0.0
-  web_server:
-    processing_delay_mean: 20.0
-    processing_delay_stdev: 0.0
-  media_server:
-    processing_delay_mean: 20.0
-    processing_delay_stdev: 0.0
+  # shop_server:
+  #   processing_delay_mean: 20.0
+  #   processing_delay_stdev: 0.0
+  # web_server:
+  #   processing_delay_mean: 20.0
+  #   processing_delay_stdev: 0.0
+  # media_server:
+  #   processing_delay_mean: 20.0
+  #   processing_delay_stdev: 0.0
 
   

@@ -17,7 +17,7 @@ from gym.utils import seeding
 import numpy as np
 from rlsp.envs.environment_limits import EnvironmentLimits
 from rlsp.utils.constants import SUPPORTED_OBJECTIVES
-from spinterface import SimulatorInterface, SimulatorState
+# from spinterface import SimulatorInterface, SimulatorState
 from coordsim.reader.reader import read_network, get_sfc, get_sf, network_diameter, get_sfc_requirement
 import json
 import random
@@ -77,10 +77,14 @@ class MetroNetworkEnv(gym.Env):
         self.objective = self.agent_config['objective']
         self.episode_count = -1
         self.dockerHelper = DockerHelper(user_trace_file,
-        ingress_distribution_file_path = ingress_distribution_file, docker_client_services_path = container_client_file, docker_lb_container_path = container_lb_file)
-        self.captureHelper = CaptureHelper(docker_client_services_path = container_client_file, docker_server_services_path= container_server_file, ingress_distribution_file_path = ingress_distribution_file, docker_lb_container_path=docker_lb_container_path)
+        ingress_distribution_file_path = ingress_distribution_file, docker_client_services_path = container_client_file, docker_lb_container_path = container_lb_file, service_list = list(self.sfc_list.keys()))
+        self.captureHelper = CaptureHelper(docker_client_services_path = container_client_file, docker_server_services_path= container_server_file, ingress_distribution_file_path = ingress_distribution_file, docker_lb_container_path=container_lb_file, service_list = list(self.sfc_list.keys()))
         self.ingress_node = ["node3", "node4"]
         pass
+
+    def reward_func_repr(self):
+        """returns a string describing the reward function"""
+        return inspect.getsource(self.calculate_reward)
 
     def get_ingress_nodes(self):
         """
@@ -111,10 +115,9 @@ class MetroNetworkEnv(gym.Env):
         self.dockerHelper.set_user_number(self.step_count)
 
         logger.info("Checking client container is working")
-        self.check_client_container_working(self.step_count)
+        time_up_already = self.check_client_container_working(self.step_count)
+        latency, dropped_conn, success_conn, ingress_traffic = self.captureHelper.capture_data(self.ingress_node, time_up_already)
 
-
-        latency, dropped_conn, success_conn, ingress_traffic = self.captureHelper.capture_data(self.ingress_node)
         capture_traffic = self.normalize_ingress_traffic(ingress_traffic)
         #FIXME: replace this with the real comand
         # capture_traffic = [random.random() for _ in range(12)]
@@ -171,14 +174,10 @@ class MetroNetworkEnv(gym.Env):
         self.dockerHelper.set_user_number(self.step_count)
 
         logger.info("Checking if all actions has been updated")
-        self.check_all_container_working(scheduling=scheduling, step_count=self.step_count)
-        # self.check_lb_container_working(scheduling)
-        # self.check_client_container_working(self.step_count)
-        #TODO: packet_loss
-        # packet_loss = self.captureHelper.get_packet_loss()
-        logger.info("Capturing")
-        latency, dropped_conn, success_conn, ingress_traffic = self.captureHelper.capture_data(self.ingress_node)
-        # reward = self.calculate_reward(latency)
+        latency, dropped_conn, success_conn, ingress_traffic = self.capture_data(scheduling=scheduling, step_count=self.step_count)
+        # self.check_all_container_working(scheduling=scheduling, step_count=self.step_count)
+        # logger.info("Capturing")
+        # latency, dropped_conn, success_conn, ingress_traffic = self.captureHelper.capture_data(self.ingress_node)
 
         # Normalize the ingress traffic
         capture_traffic = self.normalize_ingress_traffic(ingress_traffic)
@@ -198,6 +197,16 @@ class MetroNetworkEnv(gym.Env):
         logger.info(f"reward: {reward}")
         logger.info(f"done: {done}")
         return observation, reward, done, info
+
+    def capture_data(self, scheduling, step_count):
+        """
+        Make sure the containers are working good!
+        Check if the data capture is good enough for next processing!
+        """
+        time_up_already = self.check_all_container_working(scheduling=scheduling, step_count=self.step_count)
+        logger.info("Capturing")
+        latency, dropped_conn, success_conn, ingress_traffic = self.captureHelper.capture_data(self.ingress_node, time_up_already)
+        return latency, dropped_conn, success_conn, ingress_traffic
 
     def render(self, mode='cli'):
         """Renders the envs.
@@ -332,23 +341,25 @@ class MetroNetworkEnv(gym.Env):
         return ingress_traffic_list
 
     def check_all_container_working(self, step_count, scheduling):
+        time.sleep(30)
+        time_up_already = 0
         time_counter = 0 
         working = False
         while(not working):
             # Make it work here!
             lb_working, lb_container_list = self.captureHelper.check_lb_containers()
             logger.info(f"load balancer: {lb_working} with list: {lb_container_list}")
-            client_working, client_container_list = self.captureHelper.check_client_containers()
+            time_up_already, client_working, client_container_list = self.captureHelper.check_client_containers()
             logger.info(f"client container: {client_working} with list: {client_container_list}")
             container_list = lb_container_list + client_container_list
             working = lb_working and client_working
             logger.info(f"time_counter: {time_counter}")
-            if time_counter == 30:
+            if time_counter == 1:
                 # Update it here!
                 logger.info("Reseting the error containers")
                 self.dockerHelper.reset_containers(container_list)
                 logger.info("Waiting the containers to be updated")
-            if time_counter == 60: 
+            if time_counter == 45: 
                 if(not client_working):
                     logger.info("Remove all the client containers")
                     self.dockerHelper.remove_containers(client_container_list)
@@ -362,13 +373,17 @@ class MetroNetworkEnv(gym.Env):
             if not working:
                 time.sleep(1)
                 time_counter +=1
+        logger.info(f"time up already: {time_up_already}")
+        return time_up_already
+
 
     def check_client_container_working(self, step_count):
+        time_up_already = 0
         time_counter = 0 
         working = False
         while(not working):
             # Make it work here!
-            working, client_container_list = self.captureHelper.check_client_containers()
+            time_up_already, working, client_container_list = self.captureHelper.check_client_containers()
             logger.info(f"client container: {working} with list: {client_container_list}")
             logger.info(f"time_counter: {time_counter}")
             if time_counter == 30:
@@ -384,6 +399,7 @@ class MetroNetworkEnv(gym.Env):
             if not working:
                 time.sleep(1)
                 time_counter +=1
+        return time_up_already
     
     def check_lb_container_working(self, scheduling):
         time.sleep(45)
@@ -430,8 +446,10 @@ env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, servic
 # action = [1 for _ in range(72)]
 # for _ in range(6):
 #     env.step(action)
-
-# check_env(env)
+logger.info(f"observation_space: {env.observation_space.shape}")
+logger.info(f"action_space: {env.action_space.shape[0]}")
+logger.info(f"self.sfc_list: {env.sfc_list.keys()}, sf_list:{env.sf_list}")
+check_env(env)
 # latency = {'search': 457.0, 'shop': 464.0, 'web': 476.0, 'media': 433.0}
 # dropped_conn = {'search': 0.0, 'shop': 0.0, 'web': 0.0, 'media': 0.0}
 # succ_conn = {'search': 84.0, 'shop': 96.0, 'web': 99.0, 'media': 40.0}

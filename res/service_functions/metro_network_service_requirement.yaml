@@ -3,7 +3,7 @@
 sfc_list:
   search:
     priority: 4
-    delay_requirement: 450
+    delay_requirement: 500
   
   shop:
     priority: 2

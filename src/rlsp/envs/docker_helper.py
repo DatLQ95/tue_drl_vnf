@@ -12,7 +12,7 @@ docker_lb_container_path = 'res/containers/load_balancer_containers.yaml'
 ingress_distribution_file_path = 'res/service_functions/metro_network_ingress_distribution.yaml'
 
 class DockerHelper():
-    def __init__(self, user_number_trace_file, ingress_distribution_file_path, docker_client_services_path, docker_lb_container_path):
+    def __init__(self, user_number_trace_file, ingress_distribution_file_path, docker_client_services_path, docker_lb_container_path, service_list):
         """
         Create docker helper with the user_trace from all clients in all node
         user_number_trace: list of dict 
@@ -22,6 +22,7 @@ class DockerHelper():
         self.get_ingress_distribution = get_docker_services(ingress_distribution_file_path)
         self.docker_clients = get_docker_services(docker_client_services_path)
         self.docker_lbs = get_docker_services(docker_lb_container_path)
+        self.service_list = service_list
 
     def reset_containers(self, container_list):
         for container in container_list:
@@ -110,7 +111,14 @@ class DockerHelper():
             node_dst_no = 0
         pass
 
-    def set_weight(self, weight):
+    def is_key_in_service_list(self, key_name):
+        is_found = False
+        for service in self.service_list:
+            if service in key_name.lower():
+                is_found = True
+        return is_found
+
+    def set_weight(self, scheduling):
         """
         Update the weight to each load balancer containers.
         Input: weight array:
@@ -126,8 +134,8 @@ class DockerHelper():
         for container in self.docker_lbs.values():
             for name, weights in container.items():
                 for key in weights.keys():
-                    if("WEIGHT" in str(key)):
-                        weights[key] = int(round(weight[node_no][service_no][vnf_no][node_dst_no] * 100))
+                    if("WEIGHT" in str(key) and self.is_key_in_service_list(key)):
+                        weights[key] = int(round(scheduling[node_no][service_no][vnf_no][node_dst_no] * 100))
 
                         if weights[key] == 0 :
                             weights[key] = 1
@@ -139,7 +147,7 @@ class DockerHelper():
                             service_no = service_no + 1
                             node_dst_no = 0
 
-                        if service_no == 4 : 
+                        if service_no == len(self.service_list) : 
                             vnf_no = vnf_no + 1
                             service_no = 0
                             node_dst_no = 0

@@ -80,7 +80,7 @@ class DDPG_BaseLine(OffPolicy_BaseLine):
             create_eval_env=self.agent_helper.config['create_eval_env'],
             policy_kwargs=policy_kwargs,
             verbose=self.agent_helper.config['verbose'],
-            learning_starts=self.agent_helper.config['learning_starts'],
+            # learning_starts=self.agent_helper.config['learning_starts'],
             tensorboard_log=self.agent_helper.graph_path,
             seed=self.agent_helper.seed
         )
