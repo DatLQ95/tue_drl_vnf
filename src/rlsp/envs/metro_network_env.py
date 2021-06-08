@@ -25,8 +25,9 @@ from stable_baselines3.common.env_checker import check_env
 from rlsp.envs.docker_helper import DockerHelper
 from rlsp.envs.capture_helper import CaptureHelper
 from rlsp.envs.action_norm_processor import ActionScheduleProcessor
-
+from rlsp.utils.util_functions import get_docker_services
 from rlsp.agents.main import get_config
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,8 @@ class MetroNetworkEnv(gym.Env):
         self.container_client_file = container_client_file
         self.container_server_file = container_server_file
         self.container_lb_file = container_lb_file
+
+        self.ingress_distribution = get_docker_services(self.ingress_distribution_file)
 
         self.network_file = network_file
         self.agent_config = agent_config
@@ -75,10 +78,17 @@ class MetroNetworkEnv(gym.Env):
         self.episode_count = -1
         self.dockerHelper = DockerHelper(user_trace_file,
         ingress_distribution_file_path = ingress_distribution_file, docker_client_services_path = container_client_file, docker_lb_container_path = container_lb_file)
-        self.captureHelper = CaptureHelper(docker_client_services_path = container_client_file, docker_server_services_path= container_server_file, ingress_distribution_file_path = ingress_distribution_file)
+        self.captureHelper = CaptureHelper(docker_client_services_path = container_client_file, docker_server_services_path= container_server_file, ingress_distribution_file_path = ingress_distribution_file, docker_lb_container_path=docker_lb_container_path)
         self.ingress_node = ["node3", "node4"]
         pass
 
+    def get_ingress_nodes(self):
+        """
+        get the ingress node list
+        """
+        ingress_distribution = get_docker_services(self.ingress_distribution_file)
+        logger.info(ingress_distribution)
+        pass
 
     def reset(self):
         """
@@ -91,16 +101,24 @@ class MetroNetworkEnv(gym.Env):
         Observation : 
         [node_number x ]
         """
+        logger.info("-------------------------------RESET------------------------")
         # Add 1 to the number of episode
         self.episode_count += 1
         # Create step count
         self.step_count = 0
+
+        logger.info("Setting user number")
         self.dockerHelper.set_user_number(self.step_count)
+
+        logger.info("Checking client container is working")
+        self.check_client_container_working(self.step_count)
+
+
         latency, dropped_conn, success_conn, ingress_traffic = self.captureHelper.capture_data(self.ingress_node)
         capture_traffic = self.normalize_ingress_traffic(ingress_traffic)
         #FIXME: replace this with the real comand
-        capture_traffic = [random.random() for _ in range(12)]
-        logger.info(f"capture_traffic: {capture_traffic}")
+        # capture_traffic = [random.random() for _ in range(12)]
+        # logger.info(f"capture_traffic: {capture_traffic}")
         observation = np.array(capture_traffic).astype(np.float32)
         return observation
 
@@ -140,33 +158,45 @@ class MetroNetworkEnv(gym.Env):
             info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)
         """
         done = False
-        #FIXME: testing only NEDD TO BE TESTED here!
-        action = [random.random() for _ in range(72)]
+        self.step_count +=1
+        logger.info(f"ACTION at {self.step_count}")
         logger.info(f"action : {action}")
         action_processor = ActionScheduleProcessor(self.env_limits.MAX_NODE_COUNT, self.env_limits.MAX_SF_CHAIN_COUNT,
                                                    self.env_limits.MAX_SERVICE_FUNCTION_COUNT)
         action = action_processor.process_action(action)
         scheduling = np.reshape(action, self.env_limits.scheduling_shape)
-        logger.info(f"scheduling : {scheduling}")
-        self.step_count +=1
+
+        logger.info(f"set action : {scheduling}")
         self.dockerHelper.set_weight(scheduling)
         self.dockerHelper.set_user_number(self.step_count)
+
+        logger.info("Checking if all actions has been updated")
+        self.check_all_container_working(scheduling=scheduling, step_count=self.step_count)
+        # self.check_lb_container_working(scheduling)
+        # self.check_client_container_working(self.step_count)
         #TODO: packet_loss
         # packet_loss = self.captureHelper.get_packet_loss()
-        
+        logger.info("Capturing")
         latency, dropped_conn, success_conn, ingress_traffic = self.captureHelper.capture_data(self.ingress_node)
         # reward = self.calculate_reward(latency)
 
         # Normalize the ingress traffic
         capture_traffic = self.normalize_ingress_traffic(ingress_traffic)
         #FIXME: replace this with the real comand
-        capture_traffic = [random.random() for _ in range(12)]
-        reward = random.random()
+        # capture_traffic = [random.random() for _ in range(12)]
+        logger.info(f"latency: {latency}")
+        logger.info(f"dropped_conn: {dropped_conn}")
+        logger.info(f"success_conn: {success_conn}")
+        
+        reward = self.calculate_reward(latency=latency, dropped_conn= dropped_conn, success_conn= success_conn)
         observation = np.array(capture_traffic).astype(np.float32)
         if self.step_count == self.agent_config['episode_steps']:
             done = True
             self.step_count = 0
         info = {}
+        logger.info(f"observation: {observation}")
+        logger.info(f"reward: {reward}")
+        logger.info(f"done: {done}")
         return observation, reward, done, info
 
     def render(self, mode='cli'):
@@ -208,7 +238,7 @@ class MetroNetworkEnv(gym.Env):
         """
         delay_reward_sfc = list()
         total_priority = 0
-        
+        logger.info(delay_sfcs)
         for sfc, sfc_delay in delay_sfcs.items():
             if sfc_delay == 0: 
                 continue
@@ -295,7 +325,75 @@ class MetroNetworkEnv(gym.Env):
         """
         #TODO: convert dict to list !
         logger.info(f"normalize_ingress_traffic: {ingress_traffic}")
-        pass
+        ingress_traffic_list = list()
+        for node, cont in ingress_traffic.items():
+            for traffic_value in cont.values():
+                ingress_traffic_list.append(traffic_value)
+        return ingress_traffic_list
+
+    def check_all_container_working(self, step_count, scheduling):
+        time_counter = 0 
+        working = False
+        while(not working):
+            # Make it work here!
+            lb_working, lb_container_list = self.captureHelper.check_lb_containers()
+            logger.info(f"load balancer: {lb_working} with list: {lb_container_list}")
+            client_working, client_container_list = self.captureHelper.check_client_containers()
+            logger.info(f"client container: {client_working} with list: {client_container_list}")
+            container_list = lb_container_list + client_container_list
+            working = lb_working and client_working
+            logger.info(f"time_counter: {time_counter}")
+            if time_counter == 30:
+                # Update it here!
+                logger.info("Reseting the error containers")
+                self.dockerHelper.reset_containers(container_list)
+                logger.info("Waiting the containers to be updated")
+            if time_counter == 60: 
+                if(not client_working):
+                    logger.info("Remove all the client containers")
+                    self.dockerHelper.remove_containers(client_container_list)
+                    time.sleep(10)
+                    self.dockerHelper.restore_clients(client_container_list, step_count)
+                elif (not lb_working):
+                    logger.info("Remove all the lb containers")
+                    self.dockerHelper.remove_containers(lb_container_list)
+                    time.sleep(10)
+                    self.dockerHelper.restore_lbs(lb_container_list, scheduling)
+            if not working:
+                time.sleep(1)
+                time_counter +=1
+
+    def check_client_container_working(self, step_count):
+        time_counter = 0 
+        working = False
+        while(not working):
+            # Make it work here!
+            working, client_container_list = self.captureHelper.check_client_containers()
+            logger.info(f"client container: {working} with list: {client_container_list}")
+            logger.info(f"time_counter: {time_counter}")
+            if time_counter == 30:
+                # Update it here!
+                logger.info("Reseting the error containers")
+                self.dockerHelper.reset_containers(client_container_list)
+                logger.info("Waiting the containers to be updated")
+            if time_counter == 60: 
+                logger.info("Remove all the client containers")
+                self.dockerHelper.remove_containers(client_container_list)
+                time.sleep(10)
+                self.dockerHelper.restore_clients(client_container_list, step_count)
+            if not working:
+                time.sleep(1)
+                time_counter +=1
+    
+    def check_lb_container_working(self, scheduling):
+        time.sleep(45)
+        lb_working, container_list = self.captureHelper.check_lb_containers()
+        while(not lb_working):
+            self.dockerHelper.reset_lb_container(container_list, scheduling)
+            time.sleep(45)
+            lb_working, container_list = self.captureHelper.check_lb_containers()
+    
+
 
 AGENT_CONFIG = 'res/config/agent/sample_agent_100_DDPG_Baseline.yaml'
 NETWORK_TRIANGLE =  'res/networks/tue_network_triangle.graphml'
@@ -309,7 +407,31 @@ docker_lb_container_path = 'res/containers/load_balancer_containers.yaml'
 
 config = get_config(AGENT_CONFIG)
 env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, service_file=SERVICE_TRIANGLE, user_trace_file = USER_TRACE, service_requirement_file = SERVICE_REQUIREMENT_TRIANGLE, ingress_distribution_file=ingress_distribution_file_path, container_client_file=docker_client_services_path, container_server_file=docker_server_services_path, container_lb_file=docker_lb_container_path)
+# 
+# obs = env.reset()
+# logger.info(f"obs {obs}")
+# action = [
+# 1, 0, 0, 0, 0, 1,
+# 1, 0, 0, 0, 0, 1,
+# 1, 0, 0, 0, 0, 1,
+# 1, 0, 0, 0, 0, 1,
 
+# 1, 0, 0, 0, 1, 0,
+# 1, 0, 0, 0, 1, 0,
+# 1, 0, 0, 0, 1, 0,
+# 1, 0, 0, 0, 1, 0,
+
+# 1, 0, 0, 1, 0, 0,
+# 1, 0, 0, 1, 0, 0,
+# 1, 0, 0, 1, 0, 0,
+# 1, 0, 0, 1, 0, 0
+# ]
+
+# action = [1 for _ in range(72)]
+# for _ in range(6):
+#     env.step(action)
+
+# check_env(env)
 # latency = {'search': 457.0, 'shop': 464.0, 'web': 476.0, 'media': 433.0}
 # dropped_conn = {'search': 0.0, 'shop': 0.0, 'web': 0.0, 'media': 0.0}
 # succ_conn = {'search': 84.0, 'shop': 96.0, 'web': 99.0, 'media': 40.0}
