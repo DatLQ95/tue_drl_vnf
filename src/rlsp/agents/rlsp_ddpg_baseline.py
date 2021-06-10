@@ -88,5 +88,6 @@ class DDPG_BaseLine(OffPolicy_BaseLine):
 
     def load_weights(self, weights_file):
         """ Load the model from a zip archive """
+        logger.info(f"load weight from file: {weights_file}")
         self.model = DDPG.load(weights_file)
         pass

@@ -29,8 +29,8 @@ critic_hidden_layer_activation: "relu"
 # target_success: 'auto'
 # network_latency_priority
 objective: 'sfc_with_priority'
-flow_weight: 0.4
-delay_weight: 0.6
+flow_weight: 0.6
+delay_weight: 0.4
 
 # Memory Config
 mem_limit: 10000

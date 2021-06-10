@@ -206,8 +206,8 @@ def get_docker_services(docker_services_path):
         config = yaml.load(f, Loader=yaml.FullLoader)
     return config
 
-docker_helper = DockerHelper(user_number_trace_file='res/traces/trace_metro_network_users.csv')
-weight = [random.random()]
+# docker_helper = DockerHelper(user_number_trace_file='res/traces/trace_metro_network_users.csv')
+# weight = [random.random()]
 # docker_helper.set_user_number(3)
 
 # service_id = docker_helper.get_service("web_client_4")

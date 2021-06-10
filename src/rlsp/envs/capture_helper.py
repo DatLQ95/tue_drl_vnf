@@ -136,7 +136,10 @@ class CaptureHelper():
         if len(con_list) > 0:
             working = False
         logger.info(f"time for each node: {time_up_already}")
-        return min(time_up_already), working, con_list
+        time_return = 0
+        if(len(time_up_already) > 0):
+            time_return = min(time_up_already)
+        return time_return, working, con_list
         # for container in name_list:
         #     if requests.get(URL)
         # self.prom

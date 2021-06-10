@@ -19,7 +19,7 @@ from stable_baselines3.td3.policies import TD3Policy, CnnPolicy
 # from rlsp.envs.action_norm_processor import ActionScheduleProcessor
 # from rl.random import GaussianWhiteNoiseProcess
 from rlsp.agents.rlsp_agent import RLSPAgent
-from rlsp.utils.util_functions import create_simulator
+from rlsp.utils.util_functions import create_simulator, create_new_env
 # from rlsp.envs.gym_env import GymEnv
 import copy
 import csv
@@ -225,7 +225,7 @@ class OffPolicy_BaseLine(RLSPAgent):
         #TODO: Write callback funcs here:
         # List of callback:
         # Checkpoint Callback: save the model every 10 episodes.
-        checkpoint_callback = CheckpointCallback(save_freq=1000, save_path='./logs/',
+        checkpoint_callback = CheckpointCallback(save_freq=96, save_path=self.agent_helper.config_dir,
                                          name_prefix='rl_model')
         # Eval Callback: evaluate every eval_freq, save the best model to best_model_save_path. 
         eval_env = env
@@ -244,14 +244,14 @@ class OffPolicy_BaseLine(RLSPAgent):
         callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=5, verbose=1)
 
         # CallbackList: to call several callback together.
-        callbacklist = CallbackList([checkpoint_callback, eval_callback, checkpoint_callback])
-
-        with ProgressBarManager(log_interval) as callback:
+        callbacklist = CallbackList([checkpoint_callback, eval_callback])
+        logger.info(f"Model: {self.model}")
+        with ProgressBarManager(log_interval) as progress_callback:
             self.model.learn(
                 total_timesteps=log_interval,
-                callback=callback)
-        mean_reward, std_reward = evaluate_policy(self.model, self.model.get_env(), n_eval_episodes=10)
-        self.eval_writer(mean_reward, std_reward)
+                callback=[progress_callback, checkpoint_callback])
+        # mean_reward, std_reward = evaluate_policy(self.model, self.model.get_env(), n_eval_episodes=10)
+        # self.eval_writer(mean_reward, std_reward)
         pass
 
     def test(self, env, episodes, verbose, episode_steps, callbacks):
@@ -259,7 +259,11 @@ class OffPolicy_BaseLine(RLSPAgent):
         logger.info(f"episodes: {episodes}, episode_steps: {episode_steps}")
         if self.agent_helper.train:
             # Create a fresh simulator with test argument
-            self.agent_helper.env.simulator = create_simulator(self.agent_helper)
+            logger.info("Create new Environment!")
+            if self.agent_helper.sim_mode:
+                self.agent_helper.env.simulator = create_simulator(self.agent_helper)
+            else :
+                self.agent_helper.env = create_new_env(self.agent_helper)
         obs = self.env.reset()
         self.setup_writer()
         self.setup_run_writer()

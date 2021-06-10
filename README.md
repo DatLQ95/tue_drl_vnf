@@ -1,4 +1,6 @@
-![Python Build](https://github.com/RealVNF/deep-rl-network-service-coordination/workflows/Python%20Build/badge.svg)
+# Luong Quoc Dat Master Thesis!
+
+<!-- ![Python Build](https://github.com/RealVNF/deep-rl-network-service-coordination/workflows/Python%20Build/badge.svg)
 
 # Self-Learning Multi-Objective Service Coordination Using Deep Reinforcement Learning
 
@@ -193,4 +195,4 @@ This project has received funding from German Federal Ministry of Education and 
 <p align="center">
 	<img src="docs/software_campus.png" width="200"/>
 	<img src="docs/BMBF_sponsored_by.jpg" width="250"/>
-</p>
+</p> -->
