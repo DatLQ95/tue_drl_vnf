@@ -65,6 +65,7 @@ class DDPG_BaseLine(OffPolicy_BaseLine):
 
         # policy_kwargs = dict(activation_fn=activ_function,
         #              net_arch=[dict(pi=[32, 32], qf=[32, 32])])
+        logger.info("Create the DDPG model")
         policy_kwargs = dict(net_arch=self.agent_helper.config['layers'])
         self.model = DDPG(
             self.policy,
@@ -80,7 +81,7 @@ class DDPG_BaseLine(OffPolicy_BaseLine):
             create_eval_env=self.agent_helper.config['create_eval_env'],
             policy_kwargs=policy_kwargs,
             verbose=self.agent_helper.config['verbose'],
-            # learning_starts=self.agent_helper.config['learning_starts'],
+            learning_starts=self.agent_helper.config['learning_starts'],
             tensorboard_log=self.agent_helper.graph_path,
             seed=self.agent_helper.seed
         )
@@ -89,5 +90,5 @@ class DDPG_BaseLine(OffPolicy_BaseLine):
     def load_weights(self, weights_file):
         """ Load the model from a zip archive """
         logger.info(f"load weight from file: {weights_file}")
-        self.model = DDPG.load(weights_file)
+        self.model = DDPG.load(weights_file, env=self.env)
         pass

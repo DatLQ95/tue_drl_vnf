@@ -205,7 +205,7 @@ class GymEnv(gym.Env):
             self.run_count = 0
 
         logger.debug(f"NN input (observation): {vectorized_state}")
-
+        # logger.info(f"NN input (observation): {vectorized_state}")
         # logger.info(f"network is {json.dumps(self.current_simulator_state.network, indent=2)}")
         # logger.info(f"placement is {self.current_simulator_state.placement}")
         # logger.info(f"sfcs is {json.dumps(self.current_simulator_state.sfcs, indent=2)}")

@@ -341,17 +341,18 @@ class MetroNetworkEnv(gym.Env):
     def normalize_ingress_traffic(self, ingress_traffic):
         """
         normalize the ingress traffic to fit with observation space.
-        divided by 10 Gb/s.
-        Ex: 1 Gb/s -> 0.1
+        Normalize based on max -> 500 request/sec!
+        Ex: 300 -> 0.6
         ingress traffic: [search_client_node0, shop_client_node0, web_Client_node0, media_client_node0, search_client_node1, shop_client_node1, web_client_node1, media_client_node1]
         ouput: [search_client_node0, shop_client_node0, web_Client_node0, media_client_node0, search_client_node1, shop_client_node1, web_client_node1, media_client_node1]
         """
         #TODO: convert dict to list !
-        logger.info(f"normalize_ingress_traffic: {ingress_traffic}")
+        logger.info(f"ingress traffic: {ingress_traffic}")
         ingress_traffic_list = list()
         for node, cont in ingress_traffic.items():
             for traffic_value in cont.values():
-                ingress_traffic_list.append(traffic_value)
+                ingress_traffic_list.append(float(traffic_value / 500))
+        logger.info(f"normalize_ingress_traffic: {ingress_traffic_list}")
         return ingress_traffic_list
 
     def check_all_container_working(self, step_count, scheduling):

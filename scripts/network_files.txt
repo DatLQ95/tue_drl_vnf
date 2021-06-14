@@ -1,1 +1,1 @@
-res/networks/tue_network.graphml
+res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress.graphml

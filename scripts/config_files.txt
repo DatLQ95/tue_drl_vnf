@@ -1,1 +1,1 @@
-res/config/simulator/trace_config_1000_sim_duration.yaml
+res/config/simulator/trace_config_100_sim_duration_pop1_pop2.yaml

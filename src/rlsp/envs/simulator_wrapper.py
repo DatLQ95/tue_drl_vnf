@@ -130,20 +130,25 @@ class SimulatorWrapper:
                                                    self.env_limits.MAX_SERVICE_FUNCTION_COUNT)
         action_array = action_processor.process_action(action_array)
         scheduling = np.reshape(action_array, self.env_limits.scheduling_shape)
-
+        # logger.info(f"scheduling: {scheduling}")
         # initialize with empty schedule and placement for each node, SFC, SF
         scheduling_dict = {v: {sfc: {sf: {} for sf in self.sf_map.keys()} for sfc in self.sfc_map.keys()}
                            for v in self.node_map.keys()}
         placement_dict = {v: set() for v in self.node_map.keys()}
         # parse schedule and prepare dict
+        # logger.info(f"{scheduling}")
+        # logger.info(f"{self.sfc_dict}")
+        # logger.info(f"{self.node_map}")
+        # logger.info(f"{self.sfc_map}")
+        #FIXME: enable sfc_idx for multiple services!
         for src_node, src_node_idx in self.node_map.items():
             for sfc, sfc_idx in self.sfc_map.items():
-                sfc_idx = 0
+                sf_idx = 0
                 for sf in self.sfc_dict[sfc]:
                     for dst_node, dst_node_idx in self.node_map.items():
-                        index = (src_node_idx, sfc_idx, sfc_idx, dst_node_idx)
+                        index = (src_node_idx, sfc_idx, sf_idx, dst_node_idx)
                         scheduling_dict[src_node][sfc][sf][dst_node] = scheduling[index]
-                    sfc_idx = sfc_idx + 1
+                    sf_idx = sf_idx + 1
 
         # compute dynamic placement depending on schedule and traffic for over all active ingress nodes and all sfcs
         for sfc, sfc_idx in self.sfc_map.items():
@@ -154,7 +159,7 @@ class SimulatorWrapper:
                 self.add_placement_recursive(ing, 0, sfc, scheduling_dict, placement_dict)
         # invoke simulator
         logger.debug("call apply on Simulator")
-        # logger.debug(f"scheduling_dicts: {json.dumps(scheduling_dict, indent=2)}")
+        # logger.info(f"scheduling_dicts: {json.dumps(scheduling_dict, indent=2)}")
         simulator_action = SimulatorAction(placement_dict, scheduling_dict)
         
         state = self.simulator.apply(simulator_action)
@@ -188,6 +193,7 @@ class SimulatorWrapper:
 
         # normalized ingress traffic
         ingress_traffic = list()
+        # logger.info(f"state.traffic: {state.traffic}")
         for node in state.network['nodes']:
             for sfc in self.sfc_dict.keys():
                 if sfc in state.traffic[node['id']]:
@@ -204,7 +210,7 @@ class SimulatorWrapper:
         #         logger.debug(f"ingress_traffic[self.node_map[node]]: {ingress_traffic[self.node_map[node]]}")
 
         ingress_traffic = np.array(ingress_traffic)
-        
+        # logger.info(f"ingress_traffic: {ingress_traffic}")
         nn_input_state = np.array([])
         if 'ingress_traffic' in self.observations_space:
             nn_input_state = np.concatenate((nn_input_state, ingress_traffic,), axis=None)

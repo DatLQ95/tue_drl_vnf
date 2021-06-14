@@ -1,1 +1,1 @@
-res/service_functions/sfc_requirement_strict40_5.yaml
+res/service_functions/sfc_requirement_one_service.yaml

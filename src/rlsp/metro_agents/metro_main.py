@@ -10,7 +10,7 @@ import yaml
 from rlsp.utils.constants import SUPPORTED_OBJECTIVES
 from rlsp.utils.experiment_result import ExperimentResult, LiteralStr
 from rlsp.utils.util_functions import create_simulator
-from rlsp.agents.agent_helper import AgentHelper
+from rlsp.metro_agents.metro_agent_helper import AgentHelper
 from rlsp.agents.rlsp_ddpg import DDPG
 from rlsp.agents.rlsp_ddpg_baseline import DDPG_BaseLine
 from rlsp.agents.rlsp_td3_baseline import TD3_BaseLine
@@ -23,13 +23,14 @@ import pandas as pd
 from common.common_functionalities import create_input_file, num_ingress
 
 
-ENV_NAME = 'rlsp-env-v1'
-DATETIME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+# ENV_NAME = 'rlsp-env-v1'
+# ENV_NAME = 'metro_network-env-v1'
+DATETIME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 logger = None
 logging.basicConfig()
-logging.root.setLevel(logging.INFO)
+logging.root.setLevel(logging.DEBUG)
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.argument('agent_config', type=click.Path(exists=True))
@@ -37,6 +38,11 @@ logging.root.setLevel(logging.INFO)
 @click.argument('service', type=click.Path(exists=True))
 @click.argument('sim_config', type=click.Path(exists=True))
 @click.argument('service_requirement', type=click.Path(exists=True))
+@click.argument('ingress_distribution', type=click.Path(exists=True))
+@click.argument('client_containers', type=click.Path(exists=True))
+@click.argument('lb_containers', type=click.Path(exists=True))
+@click.argument('server_containers', type=click.Path(exists=True))
+@click.argument('user_trace', type=click.Path(exists=True))
 @click.argument('episodes', type=int)
 @click.option('--seed', default=random.randint(1000, 9999),
               help="Specify the random seed for the environment and the learning agent.")
@@ -48,21 +54,20 @@ logging.root.setLevel(logging.INFO)
 @click.option('-ss', '--sim-seed', type=int, help="Set the simulator seed", default=None)
 @click.option('-gs', '--gen-scenario', type=click.Path(exists=True),
               help="Diff. sim config file for additional scenario test", default=None)
-def cli(agent_config, network, service, sim_config, service_requirement, episodes, seed, test, weights, append_test, verbose, best,
+def cli(agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, episodes, seed, test, weights, append_test, verbose, best,
         sim_seed, gen_scenario):
     """rlsp cli for learning and testing"""
     global logger
 
     # Setup agent helper class
-    agent_helper = setup(agent_config, network, service, sim_config, service_requirement, seed, episodes, weights, verbose, DATETIME, test, append_test, best, sim_seed, gen_scenario)
+    agent_helper = setup(agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, seed, episodes, weights, verbose, DATETIME, test, append_test, best, sim_seed, gen_scenario)
     log_info(agent_helper)
     # Execute training or testing
     execute(agent_helper)
     # Save results
     wrap_up(agent_helper)
 
-
-def setup(agent_config, network, service, sim_config, service_requirement, seed, episodes, weights,
+def setup(agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, seed, episodes, weights,
           verbose, DATETIME, test, append_test, best, sim_seed, gen_scenario):
     """Overall setup for the rl variables"""
     if best:
@@ -70,7 +75,7 @@ def setup(agent_config, network, service, sim_config, service_requirement, seed,
         result_dir = f"results/{get_base_path(agent_config, network, service, sim_config, service_requirement)}"
         test = select_best_agent(agent_config, result_dir)
     # Create the AgentHelper data class
-    agent_helper = AgentHelper(agent_config, network, service, sim_config, service_requirement, seed, episodes, weights, verbose, DATETIME,
+    agent_helper = AgentHelper(agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, seed, episodes, weights, verbose, DATETIME,
                                test, append_test, sim_seed, gen_scenario)
 
     # Setup the files and paths required for the agent
@@ -176,10 +181,11 @@ def execute(agent_helper):
 
 def train_agent(agent_helper):
     """Calling the agent's train function"""
-    # agent_helper.result.runtime_start()
+    agent_helper.result.runtime_start()
     training(agent_helper.agent, agent_helper.env, agent_helper.callbacks, agent_helper.episodes, agent_helper.result)
-    # agent_helper.result.runtime_stop()
+    agent_helper.result.runtime_stop()
     agent_helper.agent.save_weights(agent_helper.config_dir, overwrite=True)
+
 
 def test_agent(agent_helper):
     """Calling the agent's test function"""
@@ -198,14 +204,15 @@ def wrap_up(agent_helper):
     logger.info(f"See {agent_helper.logfile} for {'full (DEBUG)' if agent_helper.verbose else 'INFO'} log output.")
 
 
-def get_base_path(agent_config_path, network_path, service_path, sim_config_path, service_requirement_path):
+def get_base_path(agent_config_path, network_path, service_path, sim_config_path, service_requirement_path, ingress_distribution_path):
     """Return base path based on specified input paths."""
     agent_config_stem = os.path.splitext(os.path.basename(agent_config_path))[0]
     network_stem = os.path.splitext(os.path.basename(network_path))[0]
     service_stem = os.path.splitext(os.path.basename(service_path))[0]
     config_stem = os.path.splitext(os.path.basename(sim_config_path))[0]
     service_requirement_stem = os.path.splitext(os.path.basename(service_requirement_path))[0]
-    return f"{agent_config_stem}/{network_stem}/{service_stem}/{config_stem}/{service_requirement_stem}"
+    ingress_distribution_stem = os.path.splitext(os.path.basename(ingress_distribution_path))[0]
+    return f"{agent_config_stem}/{network_stem}/{service_stem}/{config_stem}/{service_requirement_stem}/{ingress_distribution_stem}"
 
 
 def setup_files(agent_helper, best=False):
@@ -220,9 +227,10 @@ def setup_files(agent_helper, best=False):
     agent_helper.network_path = click.format_filename(agent_helper.network_path)
     agent_helper.service_path = click.format_filename(agent_helper.service_path)
     agent_helper.service_requirement_path = click.format_filename(agent_helper.service_requirement_path)
+    agent_helper.ingress_distribution_path = click.format_filename(agent_helper.ingress_distribution_path)
 
     # set result and graph base path based on network, service, config name
-    base_path = get_base_path(agent_helper.agent_config_path, agent_helper.network_path, agent_helper.service_path, agent_helper.sim_config_path, agent_helper.service_requirement_path)
+    base_path = get_base_path(agent_helper.agent_config_path, agent_helper.network_path, agent_helper.service_path, agent_helper.sim_config_path, agent_helper.service_requirement_path, agent_helper.ingress_distribution_path)
     agent_helper.result_base_path = f"./results/{base_path}"
     agent_helper.graph_base_path = f"./graph/{base_path}"
 
@@ -255,13 +263,14 @@ def setup_files(agent_helper, best=False):
 
     # Copy files to result dir
     agent_helper.agent_config_path, agent_helper.network_path, agent_helper.service_path, \
-        agent_helper.sim_config_path, agent_helper.service_requirement_path = copy_input_files(
+        agent_helper.sim_config_path, agent_helper.service_requirement_path, agent_helper.ingress_distribution_path = copy_input_files(
             agent_helper.config_dir,
             agent_helper.agent_config_path,
             agent_helper.network_path,
             agent_helper.service_path,
             agent_helper.sim_config_path,
-            agent_helper.service_requirement_path)
+            agent_helper.service_requirement_path,
+            agent_helper.ingress_distribution_path)
 
     if agent_helper.gen_scenario_test:
         weights = f"{agent_helper.gen_scenario_result_base_path}/{agent_helper.test}/weights*"
@@ -324,13 +333,14 @@ def get_config(config_file):
     return config
 
 
-def copy_input_files(target_dir, agent_config_path, network_path, service_path, sim_config_path, service_requirement_path):
+def copy_input_files(target_dir, agent_config_path, network_path, service_path, sim_config_path, service_requirement_path, ingress_distribution_path):
     """Create the results directory and copy input files"""
     new_agent_config_path = target_dir + os.path.basename(agent_config_path)
     new_network_path = target_dir + os.path.basename(network_path)
     new_service_path = target_dir + os.path.basename(service_path)
     new_sim_config_path = target_dir + os.path.basename(sim_config_path)
     new_service_requirement_path = target_dir + os.path.basename(service_requirement_path)
+    new_ingress_distribution_path = target_dir + os.path.basename(ingress_distribution_path)
 
     os.makedirs(target_dir, exist_ok=True)
     copyfile(agent_config_path, new_agent_config_path)
@@ -338,8 +348,9 @@ def copy_input_files(target_dir, agent_config_path, network_path, service_path, 
     copyfile(service_path, new_service_path)
     copyfile(sim_config_path, new_sim_config_path)
     copyfile(service_requirement_path, new_service_requirement_path)
+    copyfile(ingress_distribution_path, new_ingress_distribution_path)
 
-    return new_agent_config_path, new_network_path, new_service_path, new_sim_config_path, new_service_requirement_path
+    return new_agent_config_path, new_network_path, new_service_path, new_sim_config_path, new_service_requirement_path, new_ingress_distribution_path
 
 
 def setup_logging(verbose, logfile):
@@ -383,18 +394,20 @@ def create_environment(agent_helper):
     agent_helper.result.env_config['service_file'] = agent_helper.service_path
     agent_helper.result.env_config['sim_config_file'] = agent_helper.sim_config_path
     agent_helper.result.env_config['service_requirement_file'] = agent_helper.service_requirement_path
+    agent_helper.result.env_config['ingress_distribution_file'] = agent_helper.ingress_distribution_path
     agent_helper.result.env_config['simulator_cls'] = "siminterface.Simulator"
 
-    # Get the environment and extract the number of actions.
-    env = gym.make(ENV_NAME,
-                   agent_config=agent_helper.config,
-                   simulator=create_simulator(agent_helper),
-                   network_file=agent_helper.network_path,
-                   service_file=agent_helper.service_path,
-                   service_requirement_file=agent_helper.service_requirement_path,
-                   seed=agent_helper.seed,
-                   sim_seed=agent_helper.sim_seed)
-
+    env = gym.make('metro_network-env-v1',
+                agent_config=agent_helper.config,
+                network_file=agent_helper.network_path,
+                service_file=agent_helper.service_path,
+                user_trace_file = agent_helper.user_trace_path,
+                service_requirement_file=agent_helper.service_requirement_path,
+                ingress_distribution_file=agent_helper.ingress_distribution_path,
+                container_client_file=agent_helper.client_containers_path,
+                container_server_file=agent_helper.server_containers_path,
+                container_lb_file=agent_helper.lb_containers_path,
+                log_metrics_dir = agent_helper.config_dir)
     agent_helper.result.env_config['reward_fnc'] = LiteralStr(env.reward_func_repr())
     return env
 
@@ -436,14 +449,18 @@ def training(agent, env, callbacks, episodes, result):
               log_interval=episodes * episode_steps)
     logger.info("FINISHED TRAINING")
 
-
 if __name__ == '__main__':
+    
     agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service.yaml'
-    network = 'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress.graphml'
-    service = 'res/service_functions/tue_abc_one_service.yaml'
     sim_config = 'res/config/simulator/trace_config_100_sim_duration_pop1_pop2.yaml'
-    service_requirement = 'res/service_functions/sfc_requirement_one_service.yaml'
-    # sim_config = 'res/config/simulator/det-mmp-arrival7-3_det-size0_dur100_no_traffic_prediction.yaml'
+    network =  'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress.graphml'
+    user_trace = 'res/traces/avg_all_app_trace_metro_network_users.csv'
+    service = 'res/service_functions/metro_network_services.yaml'
+    service_requirement = 'res/service_functions/metro_network_service_requirement.yaml'
+    client_containers = 'res/containers/client_containers.yaml'
+    server_containers = 'res/containers/server_containers.yaml'
+    ingress_distribution = 'res/service_functions/metro_network_ingress_distribution.yaml'
+    lb_containers = 'res/containers/load_balancer_containers.yaml'
 
     # training for 1 episode
     # cli([agent_config, network, service, sim_config, '1', '-v'])
@@ -452,14 +469,18 @@ if __name__ == '__main__':
     # cli([agent_config, network, service, sim_config, service_requirement, '1', '-t', '2021-04-16_00-14-35_seed1109'])
 
     # training & testing for 1 episodes
-    # cli([agent_config, network, service, sim_config, service_requirement, '100', '--append-test'])
-    # cli([agent_config, network, service, sim_config, service_requirement, '10'])
+    # cli([agent_config, network, service, sim_config, service_requirement, '-w', '2021-04-16_00-14-35_seed1109', '4', '--append-test'])
+
+    # cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '2'])
+    cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '-w', '2021-06-14_11-18-53_seed4832', '6'])
+
+    # env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, service_file=SERVICE_TRIANGLE, user_trace_file = USER_TRACE, service_requirement_file = SERVICE_REQUIREMENT_TRIANGLE, ingress_distribution_file=ingress_distribution_file_path, container_client_file=docker_client_services_path, container_server_file=docker_server_services_path, container_lb_file=docker_lb_container_path)
     # training & testing for 4 episodes, with fixed simulator seed.
     # cli([agent_config, network, service, sim_config, '4', '--append-test', '-ss', '5555'])
 
     # continue training for 5 episodes
-    # cli([agent_config, network, service, sim_config, service_requirement, '--seed', 9726, '1', '--append-test', '--weights', '2021-06-12_14-03-03_seed9726'])
-    cli([agent_config, network, service, sim_config, service_requirement, '100', '--append-test'])
+    # cli([agent_config, network, service, sim_config, '20', '--append-test', '--weights',
+    #      '2020-10-13_07-47-53_seed9764'])
 
     # test select_best
     # cli([agent_config, network, service, sim_config, service_requirement, '1', '--best', '--sim-seed', '1234'])

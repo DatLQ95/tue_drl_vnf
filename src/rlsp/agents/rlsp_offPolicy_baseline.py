@@ -194,6 +194,7 @@ class OffPolicy_BaseLine(RLSPAgent):
         # policy_kwargs = dict(activation_fn=activ_function,
         #              net_arch=[dict(pi=[32, 32], qf=[32, 32])])
         policy_kwargs = dict(net_arch=self.agent_helper.config['layers'])
+        
         self.model = OffPolicyAlgorithm(
             self.policy,
             self.env,
@@ -213,6 +214,9 @@ class OffPolicy_BaseLine(RLSPAgent):
             seed=self.agent_helper.seed
         )
         pass
+
+    def test_env(self):
+        logger.info(f"Model: {self.model.get_env()}")
 
     def fit(self, env, episodes, verbose, episode_steps, callbacks, log_interval, agent_id=-1):
         """Mask the agent fit function
@@ -245,7 +249,8 @@ class OffPolicy_BaseLine(RLSPAgent):
 
         # CallbackList: to call several callback together.
         callbacklist = CallbackList([checkpoint_callback, eval_callback])
-        logger.info(f"Model: {self.model}")
+
+        logger.info(f"Model: {self.model.get_env()}")
         with ProgressBarManager(log_interval) as progress_callback:
             self.model.learn(
                 total_timesteps=log_interval,
@@ -260,10 +265,7 @@ class OffPolicy_BaseLine(RLSPAgent):
         if self.agent_helper.train:
             # Create a fresh simulator with test argument
             logger.info("Create new Environment!")
-            if self.agent_helper.sim_mode:
-                self.agent_helper.env.simulator = create_simulator(self.agent_helper)
-            else :
-                self.agent_helper.env = create_new_env(self.agent_helper)
+            self.agent_helper.env.simulator = create_simulator(self.agent_helper)
         obs = self.env.reset()
         self.setup_writer()
         self.setup_run_writer()

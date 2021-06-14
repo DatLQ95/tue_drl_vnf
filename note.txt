@@ -52,3 +52,15 @@ Test with TD3 using baseline and compare result.
 
 18/4: 
 Export the file and run on the server edge 2 and 3 to save time.
+
+13/6: 
+9h15: 
+- Agent: DDPG baseline with the set up of DDPG 
+- Network: Triangle network.
+- Service :1 service
+To enable several services: 
+    change the index in wrapper env + writter file in simulation
+- Objectiive weight: 50-50
+-> test to see if the agent can learn and provide good result.
+
+After that -> run with real implementation in metro network.

@@ -20,8 +20,8 @@ layers: [64]
 
 # objective and reward
 objective: 'sfc_with_priority'
-flow_weight: 0.4
-delay_weight: 0.6
+flow_weight: 0.5
+delay_weight: 0.5
 
 # for noise random process
 rand_sigma: 0.2 # 0.2 - 0.3 seem to work well here

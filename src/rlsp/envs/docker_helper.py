@@ -281,6 +281,7 @@ class DockerHelper():
         # for env_key,value in env_dict.items():
         #     env_list.append(f"{env_key}={value}")
         service = self.client.services.get(service_id)
+        success = False
         try: 
             success = service.force_update()
         except:

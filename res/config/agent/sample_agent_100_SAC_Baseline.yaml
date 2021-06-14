@@ -72,6 +72,8 @@ verbose: 1
 # Policy and Value function NN sizes
 layers: [64]
 
+learning_starts: 96
+
 # # NN activation function
 nn_activ: th.nn.ReLU
 
