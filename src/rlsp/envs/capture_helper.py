@@ -44,6 +44,8 @@ class CaptureHelper():
         sleep_time = self.capture_time
         if time_up_already < self.capture_time:
             sleep_time = self.capture_time - time_up_already
+        elif time_up_already < self.capture_time * 1.5:
+            sleep_time = 1
         logger.info(f"sleep_time: {sleep_time}")
         time.sleep(sleep_time)
         # Latency:
@@ -219,7 +221,9 @@ class CaptureHelper():
             cont_dict = dict()
             for container in container.keys():
                 if self.is_container_in_service_list(container):
+                    logger.info(f"histogram_quantile(0.9, sum(rate(request_latency_seconds_{container}_bucket[{self.capture_time}s])) by (le))")
                     metric_array = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_{container}_bucket[{self.capture_time}s])) by (le))")
+                    logger.info(f"metric_array: {metric_array}")
                     value_latency = metric_array[0]['value'][1]
                     # if container in list(metric_dict.keys()):
                     if(value_latency == 'NaN'):
@@ -366,7 +370,7 @@ class CaptureHelper():
             dropped_connection[node] = cont_dict
         return dropped_connection
     
-    def calculate_success_connection(self):
+    def calculate_capacity(self):
         metrics_array_handled = self.prom.custom_query(query=f"nginx_connections_handled[{self.capture_time}s]")
         succ_connection = dict()
         for node, container in self.docker_server_services.items():
@@ -377,7 +381,7 @@ class CaptureHelper():
                 if flag_got_value_handled == True:
                     array_handled = [int(float(value[1])) for value in handled_conn]
                     succ_conn = array_handled[-1] - array_handled[0]
-                cont_dict[container] = succ_conn
+                cont_dict[container] = succ_conn / self.capture_time
             succ_connection[node] = cont_dict
         return succ_connection
 

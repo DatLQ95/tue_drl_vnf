@@ -451,6 +451,10 @@ class GymEnv(gym.Env):
             instance_reward = 0
             pass
 
+        elif self.objective == 'sfc_with_flow_only':
+            delay_reward = 0
+            nodes_reward = 0
+            instance_reward = 0
         else:
             raise ValueError(f"Unexpected objective {self.objective}. Must be in {SUPPORTED_OBJECTIVES}.")
 

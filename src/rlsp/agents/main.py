@@ -423,7 +423,7 @@ def create_agent(agent_helper):
 def testing(agent, env, callbacks, episode_steps, episodes, result):
     result.agent_config['episode_steps'] = episode_steps
     # run single episode with specified number of steps
-    agent.test(env, episodes=episodes, verbose=1, episode_steps=episode_steps, callbacks=callbacks)
+    agent.test(env, episodes=episodes, verbose=1, episode_steps=episode_steps, callbacks=callbacks, sim = True)
     logger.info("FINISHED TEST")
 
 
@@ -438,11 +438,12 @@ def training(agent, env, callbacks, episodes, result):
 
 
 if __name__ == '__main__':
-    agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service.yaml'
-    network = 'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress.graphml'
+    agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective_node_load_obs.yaml'
+    network = 'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress_diff_cap_10_5.graphml'
     service = 'res/service_functions/tue_abc_one_service.yaml'
     sim_config = 'res/config/simulator/trace_config_100_sim_duration_pop1_pop2.yaml'
     service_requirement = 'res/service_functions/sfc_requirement_one_service.yaml'
+
     # sim_config = 'res/config/simulator/det-mmp-arrival7-3_det-size0_dur100_no_traffic_prediction.yaml'
 
     # training for 1 episode
@@ -459,7 +460,7 @@ if __name__ == '__main__':
 
     # continue training for 5 episodes
     # cli([agent_config, network, service, sim_config, service_requirement, '--seed', 9726, '1', '--append-test', '--weights', '2021-06-12_14-03-03_seed9726'])
-    cli([agent_config, network, service, sim_config, service_requirement, '100', '--append-test'])
+    cli([agent_config, network, service, sim_config, service_requirement, '1', '--append-test'])
 
     # test select_best
     # cli([agent_config, network, service, sim_config, service_requirement, '1', '--best', '--sim-seed', '1234'])

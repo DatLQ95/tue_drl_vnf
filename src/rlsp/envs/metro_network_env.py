@@ -80,6 +80,7 @@ class MetroNetworkEnv(gym.Env):
         ingress_distribution_file_path = ingress_distribution_file, docker_client_services_path = container_client_file, docker_lb_container_path = container_lb_file, service_list = list(self.sfc_list.keys()))
         self.captureHelper = CaptureHelper(docker_client_services_path = container_client_file, docker_server_services_path= container_server_file, ingress_distribution_file_path = ingress_distribution_file, docker_lb_container_path=container_lb_file, service_list = list(self.sfc_list.keys()))
         self.ingress_node = ["node3", "node4"]
+        self.info = dict()
 
     def reward_func_repr(self):
         """returns a string describing the reward function"""
@@ -126,6 +127,7 @@ class MetroNetworkEnv(gym.Env):
         # capture_traffic = [random.random() for _ in range(12)]
         # logger.info(f"capture_traffic: {capture_traffic}")
         observation = np.array(capture_traffic).astype(np.float32)
+        self.agent_start_time = time.time()
         return observation
 
     def seed(self, seed=None):
@@ -199,17 +201,17 @@ class MetroNetworkEnv(gym.Env):
         if self.step_count == self.agent_config['episode_steps']:
             logger.info("END---------------------------------------------------------------")
             done = True
-            self.step_count = 0
             self.writer.close_stream()
-        info = {}
+        self.info['step'] = self.step_count
         logger.info(f"observation: {observation}")
         logger.info(f"reward: {reward}")
         logger.info(f"done: {done}")
         stop_time = time.time()
         runtime = stop_time - start_time
-        self.writer.write_runtime(runtime)
-
-        return observation, reward, done, info
+        agent_time = start_time - self.agent_start_time
+        self.writer.write_runtime(runtime, agent_time)
+        self.agent_start_time = time.time()
+        return observation, reward, done, self.info
 
     def capture_data(self, scheduling, step_count):
         """
@@ -300,6 +302,11 @@ class MetroNetworkEnv(gym.Env):
         elif self.objective == 'sfc_with_priority':
             conn_reward *= self.agent_config['flow_weight']
             delay_reward *= self.agent_config['delay_weight']
+        
+        elif self.objective == 'sfc_with_flow_only':
+            conn_reward = conn_reward
+            delay_reward = 0
+
         else:
             raise ValueError(f"Unexpected objective {self.objective}. Must be in {SUPPORTED_OBJECTIVES}.")
         
@@ -351,7 +358,7 @@ class MetroNetworkEnv(gym.Env):
         ingress_traffic_list = list()
         for node, cont in ingress_traffic.items():
             for traffic_value in cont.values():
-                ingress_traffic_list.append(float(traffic_value / 500))
+                ingress_traffic_list.append(float(traffic_value / 250))
         logger.info(f"normalize_ingress_traffic: {ingress_traffic_list}")
         return ingress_traffic_list
 
@@ -426,44 +433,44 @@ class MetroNetworkEnv(gym.Env):
     
 
 
-# AGENT_CONFIG = 'res/config/agent/sample_agent_100_DDPG_Baseline.yaml'
-# NETWORK_TRIANGLE =  'res/networks/tue_network_triangle.graphml'
-# USER_TRACE = 'res/traces/trace_metro_network_users.csv'
-# SERVICE_TRIANGLE = 'res/service_functions/metro_network_services.yaml'
-# SERVICE_REQUIREMENT_TRIANGLE = 'res/service_functions/metro_network_service_requirement.yaml'
-# docker_client_services_path = 'res/containers/client_containers.yaml'
-# docker_server_services_path = 'res/containers/server_containers.yaml'
-# ingress_distribution_file_path = 'res/service_functions/metro_network_ingress_distribution.yaml'
-# docker_lb_container_path = 'res/containers/load_balancer_containers.yaml'
-# logs_dir_test = 'results/test'
+# logs_dir_test = 'results/test_random/1'
 
-# config = get_config(AGENT_CONFIG)
-# env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, service_file=SERVICE_TRIANGLE, user_trace_file = USER_TRACE, service_requirement_file = SERVICE_REQUIREMENT_TRIANGLE, ingress_distribution_file=ingress_distribution_file_path, container_client_file=docker_client_services_path, container_server_file=docker_server_services_path, container_lb_file=docker_lb_container_path, log_metrics_dir=logs_dir_test)
+# agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective.yaml'
+# sim_config = 'res/config/simulator/trace_config_100_sim_duration_pop1_pop2.yaml'
+# network =  'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress_diff_cap_7_5.graphml'
+# user_trace = 'res/traces/trace_metro_network_search_test_model_users.csv'
+# service = 'res/service_functions/metro_network_services.yaml'
+# service_requirement = 'res/service_functions/metro_network_service_requirement.yaml'
+# client_containers = 'res/containers/client_containers.yaml'
+# server_containers = 'res/containers/server_containers.yaml'
+# ingress_distribution = 'res/service_functions/metro_network_ingress_distribution.yaml'
+# lb_containers = 'res/containers/load_balancer_containers.yaml'
 
+# config = get_config(agent_config)
+# env = MetroNetworkEnv(agent_config=config, network_file=network, service_file=service, user_trace_file = user_trace, service_requirement_file = service_requirement, ingress_distribution_file=ingress_distribution, container_client_file=client_containers, container_server_file=server_containers, container_lb_file=lb_containers, log_metrics_dir=logs_dir_test)
+
+
+# # logger.info(f"obs {obs}")
+
+# # action = [
+# # 1, 1, 1, 
+# # 1, 1, 1,
+# # 0, 1, 0, 
+# # 1, 0, 0,
+# # 0, 0, 1, 
+# # 1, 0, 0
+# # ]
+# # env.step(action)
+# # action = [1 for _ in range(72)]
+# logger.info("START HERE")
 # obs = env.reset()
-# logger.info(f"obs {obs}")
-# action = [
-# 1, 0, 0, 0, 0, 1,
-# 1, 0, 0, 0, 0, 1,
-# 1, 0, 0, 0, 0, 1,
-# 1, 0, 0, 0, 0, 1,
+# done = False
+# while not done:
+#     action = [random.random() for _ in range(18)]
+#     obs, reward, done, info = env.step(action)
+#     logger.info(f"done: {done}")
 
-# 1, 0, 0, 0, 1, 0,
-# 1, 0, 0, 0, 1, 0,
-# 1, 0, 0, 0, 1, 0,
-# 1, 0, 0, 0, 1, 0,
 
-# 1, 0, 0, 1, 0, 0,
-# 1, 0, 0, 1, 0, 0,
-# 1, 0, 0, 1, 0, 0,
-# 1, 0, 0, 1, 0, 0
-# ]
-
-# action = [1 for _ in range(72)]
-
-# for _ in range(6):
-#     action = env.action_space.sample()
-#     env.step(action)
 # logger.info(f"observation_space: {env.observation_space.shape}")
 # logger.info(f"action_space: {env.action_space.shape[0]}")
 # logger.info(f"self.sfc_list: {env.sfc_list.keys()}, sf_list:{env.sf_list}")

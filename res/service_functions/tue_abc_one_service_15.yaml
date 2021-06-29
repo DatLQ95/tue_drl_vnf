@@ -27,7 +27,7 @@ sf_list:
     processing_delay_mean: 1.0
     processing_delay_stdev: 0.0
   b1:
-    processing_delay_mean: 20.0
+    processing_delay_mean: 15.0
     processing_delay_stdev: 0.0
   # a2:
   #   processing_delay_mean: 20.0

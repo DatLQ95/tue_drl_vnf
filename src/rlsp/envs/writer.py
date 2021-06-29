@@ -73,7 +73,7 @@ class ResultWriter():
         latency_output_header = ['episode', 'time', 'search', 'shop', 'web', 'media']
         reward_output_header = ['episode', 'time', 'total_reward', 'request_reward', 'latency_reward']
         ingress_output_header = ['episode', 'time', 'node4', 'node3', 'node2']
-        runtimes_output_header = ['run', 'runtime']
+        runtimes_output_header = ['run', 'runtime', 'agent_time']
 
 
         # Write headers to CSV files
@@ -87,12 +87,12 @@ class ResultWriter():
         self.ingress_traffic_writer.writerow(ingress_output_header)
         self.runtimes_writer.writerow(runtimes_output_header)
 
-    def write_runtime(self, time):
+    def write_runtime(self, time, agent_time):
         """
         Write runtime results to output file
         """
         self.action_number += 1
-        self.runtimes_writer.writerow([self.action_number, time])
+        self.runtimes_writer.writerow([self.action_number, time, agent_time])
 
     # def write_placement_file(self, action):
         

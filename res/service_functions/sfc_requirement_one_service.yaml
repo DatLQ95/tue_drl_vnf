@@ -3,7 +3,7 @@
 sfc_list:
   sfc_1:
     priority: 4
-    delay_requirement: 41
+    delay_requirement: 21.5
   
   # sfc_2:
   #   priority: 3

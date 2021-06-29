@@ -5,6 +5,7 @@
 # observation_space = ['ingress_traffic', 'node_load']
 observation_space:
   - ingress_traffic
+  - node_load
 
 # Setting episode steps
 episode_steps: 96
@@ -19,9 +20,7 @@ policy: TD3Policy
 layers: [64]
 
 # objective and reward
-objective: 'sfc_with_priority'
-flow_weight: 0.9
-delay_weight: 0.1
+objective: 'sfc_with_flow_only'
 
 # for noise random process
 rand_sigma: 0.2 # 0.2 - 0.3 seem to work well here

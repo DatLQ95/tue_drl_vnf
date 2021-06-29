@@ -201,7 +201,7 @@ class DockerHelper():
         Create the client with the env list
         """
         #prepare image:
-        image = "localhost:5000/load-balancer:latest"
+        image = "luongquocdat01091995/load-balancer:latest"
         #prepare env list:
         env_list = list()
         print(env_list)
@@ -233,7 +233,7 @@ class DockerHelper():
         Create the lb with the env list
         """
         #prepare image:
-        image = "localhost:5000/service-client:latest"
+        image = "luongquocdat01091995/service-client:latest"
         #prepare env list:
         env_list = list()
         port_number = weights["PORT_NUMBER"] + 100
@@ -379,11 +379,12 @@ class DockerHelper():
                 return_trace.append(i)
         return return_trace
 
-# docker_helper = DockerHelper(user_number_trace_file='res/traces/trace_metro_network_users.csv', ingress_distribution_file_path=ingress_distribution_file_path, docker_client_services_path=docker_client_services_path, docker_lb_container_path=docker_lb_container_path)
+# docker_helper = DockerHelper(user_number_trace_file='res/traces/trace_metro_network_users.csv', ingress_distribution_file_path=ingress_distribution_file_path, docker_client_services_path=docker_client_services_path, docker_lb_container_path=docker_lb_container_path,
+# service_list=['search'])
 # # weight = [random.random() for _ in range(72)]
 # # docker_helper.set_weight(weight=weight)
 # # docker_helper.set_user_number(3)
-# container_list = ["search_client_4"]
+# container_list = ["search_client_2"]
 # # docker_helper.reset_lb_container(container_list, weight)
 # docker_helper.restore_clients(container_list, 10)
 

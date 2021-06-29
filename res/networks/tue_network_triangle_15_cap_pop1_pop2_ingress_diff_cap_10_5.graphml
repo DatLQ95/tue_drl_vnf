@@ -76,21 +76,21 @@
       <data key="d31">0</data>
       <data key="d33">North</data>
       <data key="d39">Normal</data>
-      <data key="d40">8</data>
+      <data key="d40">14</data>
     </node>
     <node id="1">
       <data key="d28">1</data>
       <data key="d31">1</data>
       <data key="d33">East</data>
       <data key="d39">Ingress</data>
-      <data key="d40">8</data>
+      <data key="d40">7</data>
     </node>
     <node id="2">
       <data key="d28">1</data>
       <data key="d31">2</data>
       <data key="d33">South</data>
       <data key="d39">Ingress</data>
-      <data key="d40">8</data>
+      <data key="d40">14</data>
     </node>
     <edge source="0" target="1">
       <data key="d34">OC-192</data>

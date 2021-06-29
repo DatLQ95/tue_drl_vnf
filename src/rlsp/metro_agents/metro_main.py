@@ -204,7 +204,7 @@ def wrap_up(agent_helper):
     logger.info(f"See {agent_helper.logfile} for {'full (DEBUG)' if agent_helper.verbose else 'INFO'} log output.")
 
 
-def get_base_path(agent_config_path, network_path, service_path, sim_config_path, service_requirement_path, ingress_distribution_path):
+def get_base_path(agent_config_path, network_path, service_path, sim_config_path, service_requirement_path, ingress_distribution_path, user_trace_path):
     """Return base path based on specified input paths."""
     agent_config_stem = os.path.splitext(os.path.basename(agent_config_path))[0]
     network_stem = os.path.splitext(os.path.basename(network_path))[0]
@@ -212,8 +212,8 @@ def get_base_path(agent_config_path, network_path, service_path, sim_config_path
     config_stem = os.path.splitext(os.path.basename(sim_config_path))[0]
     service_requirement_stem = os.path.splitext(os.path.basename(service_requirement_path))[0]
     ingress_distribution_stem = os.path.splitext(os.path.basename(ingress_distribution_path))[0]
-    return f"{agent_config_stem}/{network_stem}/{service_stem}/{config_stem}/{service_requirement_stem}/{ingress_distribution_stem}"
-
+    user_trace_stem = os.path.splitext(os.path.basename(user_trace_path))[0]
+    return f"{agent_config_stem}/{network_stem}/{service_stem}/{config_stem}/{service_requirement_stem}/{ingress_distribution_stem}/{user_trace_stem}"
 
 def setup_files(agent_helper, best=False):
     """Setup result files and paths"""
@@ -228,9 +228,10 @@ def setup_files(agent_helper, best=False):
     agent_helper.service_path = click.format_filename(agent_helper.service_path)
     agent_helper.service_requirement_path = click.format_filename(agent_helper.service_requirement_path)
     agent_helper.ingress_distribution_path = click.format_filename(agent_helper.ingress_distribution_path)
+    agent_helper.user_trace_path = click.format_filename(agent_helper.user_trace_path)
 
     # set result and graph base path based on network, service, config name
-    base_path = get_base_path(agent_helper.agent_config_path, agent_helper.network_path, agent_helper.service_path, agent_helper.sim_config_path, agent_helper.service_requirement_path, agent_helper.ingress_distribution_path)
+    base_path = get_base_path(agent_helper.agent_config_path, agent_helper.network_path, agent_helper.service_path, agent_helper.sim_config_path, agent_helper.service_requirement_path, agent_helper.ingress_distribution_path, agent_helper.user_trace_path)
     agent_helper.result_base_path = f"./results/{base_path}"
     agent_helper.graph_base_path = f"./graph/{base_path}"
 
@@ -263,14 +264,15 @@ def setup_files(agent_helper, best=False):
 
     # Copy files to result dir
     agent_helper.agent_config_path, agent_helper.network_path, agent_helper.service_path, \
-        agent_helper.sim_config_path, agent_helper.service_requirement_path, agent_helper.ingress_distribution_path = copy_input_files(
+        agent_helper.sim_config_path, agent_helper.service_requirement_path, agent_helper.ingress_distribution_path, agent_helper.user_trace_path = copy_input_files(
             agent_helper.config_dir,
             agent_helper.agent_config_path,
             agent_helper.network_path,
             agent_helper.service_path,
             agent_helper.sim_config_path,
             agent_helper.service_requirement_path,
-            agent_helper.ingress_distribution_path)
+            agent_helper.ingress_distribution_path, 
+            agent_helper.user_trace_path)
 
     if agent_helper.gen_scenario_test:
         weights = f"{agent_helper.gen_scenario_result_base_path}/{agent_helper.test}/weights*"
@@ -333,7 +335,7 @@ def get_config(config_file):
     return config
 
 
-def copy_input_files(target_dir, agent_config_path, network_path, service_path, sim_config_path, service_requirement_path, ingress_distribution_path):
+def copy_input_files(target_dir, agent_config_path, network_path, service_path, sim_config_path, service_requirement_path, ingress_distribution_path, user_trace_path):
     """Create the results directory and copy input files"""
     new_agent_config_path = target_dir + os.path.basename(agent_config_path)
     new_network_path = target_dir + os.path.basename(network_path)
@@ -341,6 +343,7 @@ def copy_input_files(target_dir, agent_config_path, network_path, service_path, 
     new_sim_config_path = target_dir + os.path.basename(sim_config_path)
     new_service_requirement_path = target_dir + os.path.basename(service_requirement_path)
     new_ingress_distribution_path = target_dir + os.path.basename(ingress_distribution_path)
+    new_user_trace_path = target_dir + os.path.basename(user_trace_path)
 
     os.makedirs(target_dir, exist_ok=True)
     copyfile(agent_config_path, new_agent_config_path)
@@ -349,8 +352,9 @@ def copy_input_files(target_dir, agent_config_path, network_path, service_path, 
     copyfile(sim_config_path, new_sim_config_path)
     copyfile(service_requirement_path, new_service_requirement_path)
     copyfile(ingress_distribution_path, new_ingress_distribution_path)
+    copyfile(user_trace_path, new_user_trace_path)
 
-    return new_agent_config_path, new_network_path, new_service_path, new_sim_config_path, new_service_requirement_path, new_ingress_distribution_path
+    return new_agent_config_path, new_network_path, new_service_path, new_sim_config_path, new_service_requirement_path, new_ingress_distribution_path, new_user_trace_path
 
 
 def setup_logging(verbose, logfile):
@@ -395,6 +399,7 @@ def create_environment(agent_helper):
     agent_helper.result.env_config['sim_config_file'] = agent_helper.sim_config_path
     agent_helper.result.env_config['service_requirement_file'] = agent_helper.service_requirement_path
     agent_helper.result.env_config['ingress_distribution_file'] = agent_helper.ingress_distribution_path
+    agent_helper.result.env_config['user_trace_path'] = agent_helper.user_trace_path
     agent_helper.result.env_config['simulator_cls'] = "siminterface.Simulator"
 
     env = gym.make('metro_network-env-v1',
@@ -436,7 +441,7 @@ def create_agent(agent_helper):
 def testing(agent, env, callbacks, episode_steps, episodes, result):
     result.agent_config['episode_steps'] = episode_steps
     # run single episode with specified number of steps
-    agent.test(env, episodes=episodes, verbose=1, episode_steps=episode_steps, callbacks=callbacks)
+    agent.test(env, episodes=episodes, verbose=1, episode_steps=episode_steps, callbacks=callbacks, sim = False)
     logger.info("FINISHED TEST")
 
 
@@ -451,10 +456,10 @@ def training(agent, env, callbacks, episodes, result):
 
 if __name__ == '__main__':
     
-    agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service.yaml'
+    agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective.yaml'
     sim_config = 'res/config/simulator/trace_config_100_sim_duration_pop1_pop2.yaml'
-    network =  'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress.graphml'
-    user_trace = 'res/traces/avg_all_app_trace_metro_network_users.csv'
+    network =  'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress_diff_cap_7_5.graphml'
+    user_trace = 'res/traces/trace_metro_network_search_test_model_users.csv'
     service = 'res/service_functions/metro_network_services.yaml'
     service_requirement = 'res/service_functions/metro_network_service_requirement.yaml'
     client_containers = 'res/containers/client_containers.yaml'
@@ -472,8 +477,9 @@ if __name__ == '__main__':
     # cli([agent_config, network, service, sim_config, service_requirement, '-w', '2021-04-16_00-14-35_seed1109', '4', '--append-test'])
 
     # cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '2'])
-    cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '-w', '2021-06-14_11-18-53_seed4832', '6'])
+    cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '1', '-t', '2021-06-22_12-45-45_seed9834'])
 
+    # cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '1'])
     # env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, service_file=SERVICE_TRIANGLE, user_trace_file = USER_TRACE, service_requirement_file = SERVICE_REQUIREMENT_TRIANGLE, ingress_distribution_file=ingress_distribution_file_path, container_client_file=docker_client_services_path, container_server_file=docker_server_services_path, container_lb_file=docker_lb_container_path)
     # training & testing for 4 episodes, with fixed simulator seed.
     # cli([agent_config, network, service, sim_config, '4', '--append-test', '-ss', '5555'])

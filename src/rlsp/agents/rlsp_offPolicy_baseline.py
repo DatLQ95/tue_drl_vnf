@@ -259,7 +259,7 @@ class OffPolicy_BaseLine(RLSPAgent):
         # self.eval_writer(mean_reward, std_reward)
         pass
 
-    def test(self, env, episodes, verbose, episode_steps, callbacks):
+    def test(self, env, episodes, verbose, episode_steps, callbacks, sim):
         """Mask the agent fit function"""
         logger.info(f"episodes: {episodes}, episode_steps: {episode_steps}")
         if self.agent_helper.train:
@@ -283,15 +283,22 @@ class OffPolicy_BaseLine(RLSPAgent):
             obs, reward, dones, info = self.env.step(action)
             episode_reward += reward
             self.write_run_reward(step, reward)
-            if info['sim_time'] >= (self.agent_helper.episode_steps * self.agent_helper.n_steps_per_episode):
-                done = True
+            if sim :
+                step = info['sim_time']
+                if step >= (self.agent_helper.episode_steps * self.agent_helper.n_steps_per_episode):
+                    done = True
+                self.write_reward(episode, episode_reward)
+            else :
+                step = info['step'] 
+                if step >= self.agent_helper.episode_steps:
+                    done = True
                 self.write_reward(episode, episode_reward)
                 # episode += 1
+            
             sys.stdout.write(
                 "\rTesting:" +
-                f"Current Simulator Time: {info['sim_time']}. Testing duration: {self.agent_helper.episode_steps * self.agent_helper.n_steps_per_episode}")
+                f"Current Simulator Time: {step}. Testing duration: {self.agent_helper.episode_steps}\n")
             sys.stdout.flush()
-            step += 1
         print("")
         pass
 
