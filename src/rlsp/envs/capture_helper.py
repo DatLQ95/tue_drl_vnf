@@ -174,48 +174,6 @@ class CaptureHelper():
     
     
     def calculate_latency_histogram(self):
-        # metric_dict = dict()
-
-        # metrics_array_search_client_4 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_search_client_4_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["search_client_4"] = metrics_array_search_client_4[0]['value'][1]
-
-        # metrics_array_search_client_3 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_search_client_3_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["search_client_3"] = metrics_array_search_client_3[0]['value'][1]
-
-        # metrics_array_search_client_2 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_search_client_2_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["search_client_2"] = metrics_array_search_client_2[0]['value'][1]
-
-        # metrics_array_shop_client_4 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_shop_client_4_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["shop_client_4"] = metrics_array_shop_client_4[0]['value'][1]
-        
-        # metrics_array_shop_client_3 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_shop_client_3_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["shop_client_3"] = metrics_array_shop_client_3[0]['value'][1]
-        
-        # metrics_array_shop_client_2 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_shop_client_2_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["shop_client_2"] = metrics_array_shop_client_2[0]['value'][1]
-
-        # metrics_array_web_client_4 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_web_client_4_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["web_client_4"] = metrics_array_web_client_4[0]['value'][1]
-        
-        # metrics_array_web_client_3 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_web_client_3_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["web_client_3"] = metrics_array_web_client_3[0]['value'][1]
-        
-        # metrics_array_web_client_2 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_web_client_2_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["web_client_2"] = metrics_array_web_client_2[0]['value'][1]
-
-        # metrics_array_media_client_4 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_media_client_4_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["media_client_4"] = metrics_array_media_client_4[0]['value'][1]
-        
-        # metrics_array_media_client_3 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_media_client_3_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["media_client_3"] = metrics_array_media_client_3[0]['value'][1]
-        
-        # metrics_array_media_client_2 = self.prom.custom_query(query=f"histogram_quantile(0.9, sum(rate(request_latency_seconds_media_client_2_bucket[{self.capture_time}s])) by (le))")
-        # metric_dict["media_client_2"] = metrics_array_media_client_2[0]['value'][1]
-
-        # logger.info(f"search_client_4: {metrics_array_search_client_4}")
-        # logger.info(f"search_client_3: {metrics_array_search_client_3}")
-        # logger.info(f"search_client_2: {metrics_array_search_client_2}")
-
         latency = dict()
         for node, container in self.docker_client_services.items():
             cont_dict = dict()
@@ -378,11 +336,17 @@ class CaptureHelper():
             for container in container.keys():
                 succ_conn = -1
                 flag_got_value_handled, handled_conn = self.get_values(container, metrics_array_handled)
+
+                print("\n\n")
+                print(container)
+                print(handled_conn)
                 if flag_got_value_handled == True:
                     array_handled = [int(float(value[1])) for value in handled_conn]
+                    print(array_handled)
                     succ_conn = array_handled[-1] - array_handled[0]
                 cont_dict[container] = succ_conn / self.capture_time
             succ_connection[node] = cont_dict
+        print(succ_connection)
         return succ_connection
 
     def get_value(self, container, metrics_array):
@@ -412,9 +376,10 @@ def check_connection(url):
     except : 
         return False
 
-# ingress_nodes = ["node4"]
+# ingress_nodes = ["node3", "node2"]
 # service_list = ["search"]
 # capture_helper = CaptureHelper(docker_client_services_path= docker_client_services_path, docker_server_services_path= docker_server_services_path, ingress_distribution_file_path = ingress_distribution_file_path, docker_lb_container_path=docker_lb_container_path, service_list=service_list)
+# capture_helper.calculate_capacity()
 # capture_helper.calculate_latency_histogram()
 # # capture_helper.calculate_latency(ingress_nodes)
 # # capture_helper.calculate_ingress_request(ingress_nodes)

@@ -1,1 +1,1 @@
-res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective_node_load_obs.yaml
+res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective.yaml
