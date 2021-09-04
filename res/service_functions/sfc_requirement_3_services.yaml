@@ -1,0 +1,14 @@
+# Simple SLA for each service function chain. 
+
+sfc_list:
+  sfc_1:
+    priority: 7
+    delay_requirement: 21.5
+  
+  sfc_2:
+    priority: 2
+    delay_requirement: 22
+
+  sfc_3:
+    priority: 1
+    delay_requirement: 22.5

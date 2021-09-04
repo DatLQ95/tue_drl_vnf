@@ -175,6 +175,7 @@ class CaptureHelper():
     
     def calculate_latency_histogram(self):
         latency = dict()
+        logger.info(f"{self.docker_client_services.items()}")
         for node, container in self.docker_client_services.items():
             cont_dict = dict()
             for container in container.keys():
@@ -268,7 +269,9 @@ class CaptureHelper():
         for node, container in self.docker_client_services.items():
             cont_dict = dict()
             for container in container.keys():
+                # print(container)
                 if self.is_container_in_service_list(container_name=container):
+                    
                     average_ingress_requests = 0
                     qualify_array_capture = False
                     while(qualify_array_capture == False):
@@ -285,12 +288,12 @@ class CaptureHelper():
                         # check if the length is enough?
                         if len(arr_drop) == self.capture_time and len(arr_succ) == self.capture_time:
                             if self.is_container_has_ingress(container_name=container, node=node):
-                                if 0 in arr_succ: 
-                                    logger.info(f"There is a 0")
-                                    qualify_array_capture = False
-                                    time.sleep(1)
-                                else:
-                                    qualify_array_capture = True
+                                # if 0 in arr_succ: 
+                                #     logger.info(f"There is a 0")
+                                #     qualify_array_capture = False
+                                #     time.sleep(1)
+                                # else:
+                                qualify_array_capture = True
                             else:
                                 qualify_array_capture = True
                         else:
@@ -377,10 +380,10 @@ def check_connection(url):
         return False
 
 # ingress_nodes = ["node3", "node2"]
-# service_list = ["search"]
+# service_list = ["search", "shop", "web"]
 # capture_helper = CaptureHelper(docker_client_services_path= docker_client_services_path, docker_server_services_path= docker_server_services_path, ingress_distribution_file_path = ingress_distribution_file_path, docker_lb_container_path=docker_lb_container_path, service_list=service_list)
 # capture_helper.calculate_capacity()
 # capture_helper.calculate_latency_histogram()
 # # capture_helper.calculate_latency(ingress_nodes)
-# # capture_helper.calculate_ingress_request(ingress_nodes)
+# capture_helper.calculate_ingress_request()
 # capture_helper.capture_data(ingress_nodes)

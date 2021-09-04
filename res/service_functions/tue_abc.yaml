@@ -24,25 +24,25 @@ sfc_list:
 # SF attributes (for now, processing delay)
 sf_list:
   a1:
-    processing_delay_mean: 20.0
+    processing_delay_mean: 1.0
     processing_delay_stdev: 0.0
   b1:
     processing_delay_mean: 20.0
     processing_delay_stdev: 0.0
   a2:
-    processing_delay_mean: 20.0
+    processing_delay_mean: 1.0
     processing_delay_stdev: 0.0
   b2:
     processing_delay_mean: 20.0
     processing_delay_stdev: 0.0
   a3:
-    processing_delay_mean: 20.0
+    processing_delay_mean: 1.0
     processing_delay_stdev: 0.0
   b3:
     processing_delay_mean: 20.0
     processing_delay_stdev: 0.0
   a4:
-    processing_delay_mean: 20.0
+    processing_delay_mean: 1.0
     processing_delay_stdev: 0.0
   b4:
     processing_delay_mean: 20.0

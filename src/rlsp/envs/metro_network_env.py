@@ -79,7 +79,9 @@ class MetroNetworkEnv(gym.Env):
         self.dockerHelper = DockerHelper(user_trace_file,
         ingress_distribution_file_path = ingress_distribution_file, docker_client_services_path = container_client_file, docker_lb_container_path = container_lb_file, service_list = list(self.sfc_list.keys()))
         self.captureHelper = CaptureHelper(docker_client_services_path = container_client_file, docker_server_services_path= container_server_file, ingress_distribution_file_path = ingress_distribution_file, docker_lb_container_path=container_lb_file, service_list = list(self.sfc_list.keys()))
-        self.ingress_node = ["node3", "node4"]
+        logger.info(f"service_list: {list(self.sfc_list.keys())}")
+        logger.info("---------------------------------------------------------------------------------")
+        self.ingress_node = ["node3", "node2"]
         self.info = dict()
 
     def reward_func_repr(self):
@@ -235,9 +237,9 @@ class MetroNetworkEnv(gym.Env):
         cur_drop_flow = 0
         # logger.info(f"simulator_state.sfcs.keys() : {simulator_state.sfcs.keys()}")
         # calculate ratio of successful flows in the last run
-        service_list = list(dropped_conn.keys())
+        service_list = list(self.sfc_list.keys())
         for service in service_list:
-            # logger.info(f"sfc : {sfc}")
+            logger.info(f"service : {service}")
             # logger.info(f"simulator_state.network_stats['run_successful_flows_sfcs'] : {simulator_state.network_stats['run_successful_flows_sfcs'][sfc]}")
             # logger.info(f"self.service_requirement_file[sfc]['priority'] : {self.service_requirement[sfc]['priority']}")
             cur_succ_flow += success_conn[service] * self.service_requirement[service]['priority']
@@ -358,7 +360,10 @@ class MetroNetworkEnv(gym.Env):
         ingress_traffic_list = list()
         for node, cont in ingress_traffic.items():
             for traffic_value in cont.values():
-                ingress_traffic_list.append(float(traffic_value / 250))
+                if len(self.sfc_list.keys()) > 1 : 
+                    ingress_traffic_list.append(float(traffic_value / 90))
+                else:
+                    ingress_traffic_list.append(float(traffic_value / 250))
         logger.info(f"normalize_ingress_traffic: {ingress_traffic_list}")
         return ingress_traffic_list
 
@@ -433,11 +438,11 @@ class MetroNetworkEnv(gym.Env):
     
 
 
-# logs_dir_test = 'results/test_random/1'
+# logs_dir_test = 'results/1_service_same_cap_200/random'
 
 # agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective.yaml'
 # sim_config = 'res/config/simulator/trace_config_100_sim_duration_pop1_pop2.yaml'
-# network =  'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress_diff_cap_7_5.graphml'
+# network =  'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress.graphml'
 # user_trace = 'res/traces/trace_metro_network_search_test_model_users.csv'
 # service = 'res/service_functions/metro_network_services.yaml'
 # service_requirement = 'res/service_functions/metro_network_service_requirement.yaml'
@@ -446,22 +451,47 @@ class MetroNetworkEnv(gym.Env):
 # ingress_distribution = 'res/service_functions/metro_network_ingress_distribution.yaml'
 # lb_containers = 'res/containers/load_balancer_containers.yaml'
 
+
 # config = get_config(agent_config)
 # env = MetroNetworkEnv(agent_config=config, network_file=network, service_file=service, user_trace_file = user_trace, service_requirement_file = service_requirement, ingress_distribution_file=ingress_distribution, container_client_file=client_containers, container_server_file=server_containers, container_lb_file=lb_containers, log_metrics_dir=logs_dir_test)
 
 
-# # logger.info(f"obs {obs}")
+# logger.info(f"obs {obs}")
 
-# # action = [
-# # 1, 1, 1, 
-# # 1, 1, 1,
-# # 0, 1, 0, 
-# # 1, 0, 0,
-# # 0, 0, 1, 
-# # 1, 0, 0
-# # ]
-# # env.step(action)
-# # action = [1 for _ in range(72)]
+# action = [
+# 1, 1, 1, 
+# 1, 1, 1,
+# 1, 1, 1, 
+# 1, 1, 1,
+# 1, 1, 1, 
+# 1, 1, 1,
+
+# 0, 1, 0, 
+# 1, 0, 0,
+# 0, 1, 0, 
+# 1, 0, 0,
+# 0, 1, 0, 
+# 1, 0, 0,
+
+# 0, 0, 1, 
+# 1, 0, 0,
+# 0, 0, 1, 
+# 1, 0, 0,
+# 0, 0, 1, 
+# 1, 0, 0
+# ]
+
+# action = [
+# 1, 1, 1, 
+# 1, 1, 1,
+# 0, 1, 0, 
+# 1, 0, 0,
+# 0, 0, 1, 
+# 1, 0, 0,
+# ]
+
+# env.step(action)
+# action = [1 for _ in range(18)]
 # logger.info("START HERE")
 # obs = env.reset()
 # done = False

@@ -1,5 +1,18 @@
 # Luong Quoc Dat Master Thesis!
 
+1. Download and how to make it work!
+
+- For simulation:
+Prepare the sim environment.
+Download and run the app.
+
+- For testing in server:
+Prepare the container in each server.
+Run the app. 
+
+Test again using server 3!
+
+
 <!-- ![Python Build](https://github.com/RealVNF/deep-rl-network-service-coordination/workflows/Python%20Build/badge.svg)
 
 # Self-Learning Multi-Objective Service Coordination Using Deep Reinforcement Learning

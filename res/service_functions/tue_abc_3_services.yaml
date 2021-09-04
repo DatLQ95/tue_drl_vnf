@@ -1,0 +1,36 @@
+# simple chain of 3 SFs a->b->c with deterministic processing delays
+
+# list of SFCs and involved SFs (order of SFs matters). names need to match dummy schedule and placement (dummy_data.py)
+sfc_list:
+  sfc_1:
+    - a1
+    - b1
+  
+  sfc_2:
+    - a2
+    - b2
+
+  sfc_3:
+    - a3
+    - b3
+
+# SF attributes (for now, processing delay)
+sf_list:
+  a1:
+    processing_delay_mean: 1.0
+    processing_delay_stdev: 0.0
+  b1:
+    processing_delay_mean: 20.0
+    processing_delay_stdev: 0.0
+  a2:
+    processing_delay_mean: 1.0
+    processing_delay_stdev: 0.0
+  b2:
+    processing_delay_mean: 20.0
+    processing_delay_stdev: 0.0
+  a3:
+    processing_delay_mean: 1.0
+    processing_delay_stdev: 0.0
+  b3:
+    processing_delay_mean: 20.0
+    processing_delay_stdev: 0.0

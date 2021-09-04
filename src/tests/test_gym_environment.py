@@ -42,9 +42,9 @@ docker_server_services_path = 'res/containers/server_containers.yaml'
 ingress_distribution_file_path = 'res/service_functions/metro_network_ingress_distribution.yaml'
 docker_lb_container_path = 'res/containers/load_balancer_containers.yaml'
 
-agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective_node_load_obs.yaml'
-network = 'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress_diff_cap_10_5.graphml'
-service = 'res/service_functions/tue_abc_one_service_10.yaml'
+agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective.yaml'
+network = 'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress.graphml'
+service = 'res/service_functions/tue_abc_one_service.yaml'
 sim_config = 'res/config/simulator/trace_config_100_sim_duration_pop1_pop2.yaml'
 service_requirement = 'res/service_functions/sfc_requirement_one_service.yaml'
 
@@ -80,7 +80,7 @@ class TestGymEnvironment(TestCase):
         env.seed(123)
         obs = env.reset()
         logger.info(f"obs {obs}")
-        action = env.action_space.sample()
+        # action = env.action_space.sample()
 #         action = [0.1528252,  0.19189513, 0.13835746, 0.5151016,  0.8268603,  0.11794249,
 #  0.07534754, 0.8041661,  0.6766331,  0.83818173, 0.74750483, 0.2683317,
 #  0.1885326,  0.17871094, 0.48484454, 0.80052173, 0.5470235,  0.939061,
@@ -106,11 +106,11 @@ class TestGymEnvironment(TestCase):
 
         action = [
                 1, 0, 0, 
-                1, 0, 0,
+                1, 1, 1,
                 0, 1, 0, 
-                0, 1, 0,
+                1, 1, 1,
                 0, 0, 1, 
-                0, 0, 1
+                1, 1, 1
                 ]
 
         logger.info(f"action is : {action}")

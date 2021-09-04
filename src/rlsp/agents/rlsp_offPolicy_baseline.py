@@ -295,11 +295,11 @@ class OffPolicy_BaseLine(RLSPAgent):
                 self.write_reward(episode, episode_reward)
                 # episode += 1
             
-            sys.stdout.write(
-                "\rTesting:" +
-                f"Current Simulator Time: {step}. Testing duration: {self.agent_helper.episode_steps}\n")
-            sys.stdout.flush()
-        print("")
+            # # sys.stdout.write(
+            #     "\rTesting:" +
+            #     f"Current Simulator Time: {step}. Testing duration: {self.agent_helper.episode_steps}\n")
+            # sys.stdout.flush()
+        # print("")
         pass
 
     def save_weights(self, file, overwrite=True):

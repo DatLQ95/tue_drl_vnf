@@ -439,7 +439,7 @@ def training(agent, env, callbacks, episodes, result):
 
 if __name__ == '__main__':
     agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective.yaml'
-    network = 'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress_diff_cap_7_5.graphml'
+    network = 'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress.graphml'
     service = 'res/service_functions/tue_abc_one_service.yaml'
     sim_config = 'res/config/simulator/trace_config_100_sim_duration_pop1_pop2.yaml'
     service_requirement = 'res/service_functions/sfc_requirement_one_service.yaml'
@@ -459,8 +459,10 @@ if __name__ == '__main__':
     # cli([agent_config, network, service, sim_config, '4', '--append-test', '-ss', '5555'])
 
     # continue training for 5 episodes
-    cli([agent_config, network, service, sim_config, service_requirement, '--seed', 9834, '300', '--append-test', '--weights', '2021-06-22_12-45-45_seed9834'])
+    # cli([agent_config, network, service, sim_config, service_requirement, '--seed', 9834, '400', '--append-test', '--weights', '2021-06-22_12-45-45_seed9834'])
+    # cli([agent_config, network, service, sim_config, service_requirement, '--seed', 6996, '400', '--append-test'])
     # cli([agent_config, network, service, sim_config, service_requirement, '1', '--append-test'])
+    cli([agent_config, network, service, sim_config, service_requirement, '1', '-t', '2021-06-21_21-20-39_seed9834'])
 
     # test select_best
     # cli([agent_config, network, service, sim_config, service_requirement, '1', '--best', '--sim-seed', '1234'])

@@ -457,14 +457,14 @@ def training(agent, env, callbacks, episodes, result):
 if __name__ == '__main__':
     
     agent_config = 'res/config/agent/sample_agent_100_DDPG_Baseline_one_service_flow_objective.yaml'
-    sim_config = 'res/config/simulator/trace_config_100_sim_duration_pop1_pop2.yaml'
-    network =  'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress_diff_cap_7_5.graphml'
-    user_trace = 'res/traces/trace_metro_network_search_test_model_users.csv'
-    service = 'res/service_functions/metro_network_services.yaml'
-    service_requirement = 'res/service_functions/metro_network_service_requirement.yaml'
+    sim_config = 'res/config/simulator/trace_config_100_sim_duration_pop1_pop2_3_services.yaml'
+    network =  'res/networks/tue_network_triangle_15_cap_pop1_pop2_ingress_diff_cap_8_4.graphml'
+    user_trace = 'res/traces/trace_metro_network_3_services_alter.csv'
+    service = 'res/service_functions/metro_network_3_services.yaml'
+    service_requirement = 'res/service_functions/metro_network_service_requirement_3_services.yaml'
     client_containers = 'res/containers/client_containers.yaml'
     server_containers = 'res/containers/server_containers.yaml'
-    ingress_distribution = 'res/service_functions/metro_network_ingress_distribution.yaml'
+    ingress_distribution = 'res/service_functions/metro_network_ingress_distribution_3_services.yaml'
     lb_containers = 'res/containers/load_balancer_containers.yaml'
 
     # training for 1 episode
@@ -477,7 +477,9 @@ if __name__ == '__main__':
     # cli([agent_config, network, service, sim_config, service_requirement, '-w', '2021-04-16_00-14-35_seed1109', '4', '--append-test'])
 
     # cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '2'])
-    cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '1', '-t', '2021-06-22_12-45-45_seed9834'])
+    # cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '1', '-t', '2021-06-22_12-45-45_seed9834'])
+    
+    cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '1', '-t', '2021-07-04_21-23-17_seed9726'])
 
     # cli([agent_config, network, service, sim_config, service_requirement, ingress_distribution, client_containers, lb_containers, server_containers, user_trace, '1'])
     # env = MetroNetworkEnv(agent_config=config, network_file=NETWORK_TRIANGLE, service_file=SERVICE_TRIANGLE, user_trace_file = USER_TRACE, service_requirement_file = SERVICE_REQUIREMENT_TRIANGLE, ingress_distribution_file=ingress_distribution_file_path, container_client_file=docker_client_services_path, container_server_file=docker_server_services_path, container_lb_file=docker_lb_container_path)
